@@ -9,7 +9,6 @@ import sys, os, commands, string, re, shutil
 import psycopg2
 import urllib
 from datetime import datetime, timedelta
-from Products.GenericSetup.metadata import ProfileMetadata
 
 def verbose(*messages):
     print '>>', ' '.join(messages)
@@ -29,7 +28,7 @@ dsn="dbname=zoperepos user=zoperepos password=zopeREP1"
 ext_method = 'zope_repository_infos'
 ext_filename = 'zope_infos.py'
 function = 'walkInZope'
-TRACE = True
+TRACE = False
 
 ###############################################################################
 
@@ -55,25 +54,27 @@ def main():
         zopectlfilename = os.path.join(instdir, 'parts/instance/bin/zopectl')
         fspath = os.path.join(instdir, 'var/filestorage/')
         inst_type = 'buildout'
+        productsdir = os.path.join(instdir, 'parts/omelette/Products')
     else:
         zodbfilename = os.path.join(instdir, 'etc/zope.conf')
         zopectlfilename = os.path.join(instdir, 'bin/zopectl')
         fspath = os.path.join(instdir, 'var/')
         inst_type = 'manual'
+        productsdir = os.path.join(instdir, 'Products')
 
     instance = os.path.basename(instdir)
     if not tempdir:
         tempdir = os.path.join(instdir, 'temp')
 
-    trace("inst='%s', zodbf='%s', zopectlf='%s', fspath='%s'"
-        %(instance, zodbfilename, zopectlfilename, fspath))
+    trace("inst='%s', zodbf='%s', zopectlf='%s', fspath='%s', products='%s'"
+        %(instance, zodbfilename, zopectlfilename, fspath, productsdir))
 
     #deletion of table instances if the older record is >23h, as the script is run on all instances each night
     #needed to delete obsolete instances
     row = selectOneInTable('instances', 'min(creationdate)')
 #    if row[0] and (now - row[0]) > timedelta(hours=23):
-#    if row[0] and (now - row[0]) > timedelta(minutes=5):
-    if True:
+    if row[0] and (now - row[0]) > timedelta(minutes=8):
+#    if True:
         deleteTable('instances')
         deleteTable('products')
         deleteTable('instances_products')
@@ -104,7 +105,7 @@ def main():
     port = treat_zopeconflines(zodbfilename, fspath, inst_id)
 
     # Getting products in a list
-    readProductsDir(instdir, pfolders)
+    readProductsDir(productsdir, pfolders)
 
 #    input('Press a key to continue')
 #    return
@@ -206,25 +207,27 @@ def main():
 #             error(str(errmsg))
 #             sys.exit(1)
 
-    return
-
     #creating and calling external method in zope
     host = "http://localhost:%s" % port
     urllib._urlopener = MyUrlOpener()
     url_pv = "%s/%s" % (host, ext_method)
     try:
+        verbose("Running '%s'"%url_pv)
         ret_html = urllib.urlopen(url_pv).read()
         if 'the requested resource does not exist' in ret_html:
             verbose('external method %s not exist : we will create it'%ext_method)
             (module, extension) = os.path.splitext(ext_filename)
+            module = 'ZopeRepository.' + module
             url_em = "%s/manage_addProduct/ExternalMethod/manage_addExternalMethod?id=%s&module=%s&function=%s&title="%(host, ext_method, module, function)
             try:
+                verbose("Running now '%s'"%url_em)
                 ret_html = urllib.urlopen(url_em).read()
                 if 'the requested resource does not exist' in ret_html:
                     error('Cannot create external method in zope')
                     sys.exit(1)
                 else:
                     try:
+                        verbose("Running again '%s'"%url_pv)
                         ret_html = urllib.urlopen(url_pv).read()
                     except IOError:
                         error("Cannot open URL %s, aborting" % url_pv)
@@ -235,8 +238,6 @@ def main():
     except IOError:
         error("Cannot open URL %s, aborting" % url_pv)
         sys.exit(1)
-
-    verbose("End of %s"%sys.argv[0])
 
 #------------------------------------------------------------------------------
 
@@ -250,17 +251,13 @@ class MyUrlOpener(urllib.FancyURLopener):
 
 #------------------------------------------------------------------------------
 
-def readProductsDir(instdir, dic):
+def readProductsDir(pdir, dic):
     """ Read the products dir and save the folder names in a dic """
-    if buildout_inst_type:
-        if not os.path.exists(os.path.join(instdir, 'parts/omelette')):
-            error('For products analyse, insert omelette recipe in buildout.cfg')
-            return 
-        for (dirname, path) in getSubdirs(os.path.join(instdir, 'parts/omelette/Products')):
-            dic[dirname] = path
-    else:
-        for (dirname, path) in getSubdirs(os.path.join(instdir, 'Products')):
-            dic[dirname] = path
+    if not os.path.exists(pdir):
+        error("Dir products '%s' doesn't exist"%pdir)
+        return 
+    for (dirname, path) in getSubdirs(pdir):
+        dic[dirname] = path
     trace(str(dic))
 
 #------------------------------------------------------------------------------
@@ -321,15 +318,21 @@ def getLocalVersion(product_dir):
     txt_version = xml_version = ''
     file_name = os.path.join(product_dir, 'version.txt')
     if os.path.exists(file_name):
-        command = 'pg '+filename
+        command = 'pg '+file_name
         (out, err) = runCommand(command)
         if out:
             txt_version = out[0].strip('\n ')
-    file_name = os.path.join(product_dir, 'profiles/default/metadata.xml')
 
+    file_name = os.path.join(product_dir, 'profiles/default/metadata.xml')
     if os.path.exists(file_name):
-        metadata = ProfileMetadata(os.path.join(product_dir, 'profiles/default'))()
-        xml_version = metadata.get( 'version', None ).strip('\n ')
+        lines = []
+        read_zopeconffile(file_name, lines)
+        for line in lines:
+            line = line.strip('\n\t ')
+            if line.startswith('<version>'):
+                line = line[9:].replace('</version>','')
+                xml_version = line.strip('\n\t ')
+                break
 
     if txt_version and xml_version:
         if txt_version != xml_version:

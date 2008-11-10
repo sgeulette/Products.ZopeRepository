@@ -16,8 +16,14 @@ def verbose(*messages):
 def error(*messages):
     logger.warn(' '.join(messages))
 
+def trace(*messages):
+    if not TRACE:
+        return
+    logger.debug('TRACE:'+(' '.join(messages)))
+
 pdir = ''
 dsn="dbname=zoperepos user=zoperepos password=zopeREP1"
+TRACE=True
 
 ###############################################################################
 
@@ -28,7 +34,11 @@ def walkInZope(self):
     from Products.CMFCore.utils import getToolByName
     from Globals import INSTANCE_HOME
 
-    instance = os.path.basename(INSTANCE_HOME)
+    instance = INSTANCE_HOME.rstrip('/')
+    # in a buildout, INSTANCE_HOME = xxx/parts/instance
+    if instance.endswith('/parts/instance'):
+        instance = instance.replace('/parts/instance', '')
+    instance = os.path.basename(instance)
     inst_id = getInstanceId(instance)
     if not inst_id:
         return

@@ -1,4 +1,4 @@
 #instance_path;transactions_days_number;admin_user;admin_password
 /srv/inst/i1;0;admin;admin
-/srv/buildout/dev25;0;admin;admin
+/srv/buildout/dev1;0;admin;admin
 /srv/buildout/dev31;0;admin;admin
