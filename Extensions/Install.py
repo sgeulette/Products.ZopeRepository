@@ -42,11 +42,11 @@ from Products.Archetypes.Extensions.utils import installTypes
 from Products.Archetypes.Extensions.utils import install_subskin
 from Products.Archetypes.config import TOOL_NAME as ARCHETYPETOOLNAME
 from Products.Archetypes.atapi import listTypes
-from Products.CPUtils.config import PROJECTNAME
-from Products.CPUtils.config import product_globals as GLOBALS
+from Products.ZopeRepository.config import PROJECTNAME
+from Products.ZopeRepository.config import product_globals as GLOBALS
 
 def install(self, reinstall=False):
-    """ External Method to install CPUtils """
+    """ External Method to install ZopeRepository """
     out = StringIO()
     print >> out, "Installation log of %s:" % PROJECTNAME
 
@@ -54,7 +54,7 @@ def install(self, reinstall=False):
     # them.  Add a list called DEPENDENCIES to your custom
     # AppConfig.py (imported by config.py) to use it.
     try:
-        from Products.CPUtils.config import DEPENDENCIES
+        from Products.ZopeRepository.config import DEPENDENCIES
     except:
         DEPENDENCIES = []
     portal = getToolByName(self,'portal_url').getPortalObject()
@@ -90,7 +90,7 @@ def install(self, reinstall=False):
 
 
 
-    from Products.CPUtils.config import STYLESHEETS
+    from Products.ZopeRepository.config import STYLESHEETS
     try:
         portal_css = getToolByName(portal, 'portal_css')
         for stylesheet in STYLESHEETS:
@@ -106,7 +106,7 @@ def install(self, reinstall=False):
     except:
         # No portal_css registry
         pass
-    from Products.CPUtils.config import JAVASCRIPTS
+    from Products.ZopeRepository.config import JAVASCRIPTS
     try:
         portal_javascripts = getToolByName(portal, 'portal_javascripts')
         for javascript in JAVASCRIPTS:

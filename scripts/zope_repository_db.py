@@ -9,6 +9,7 @@ import sys, os, commands, string, re, shutil
 import psycopg2
 import urllib
 from datetime import datetime, timedelta
+from Products.GenericSetup.metadata import ProfileMetadata
 
 def verbose(*messages):
     print '>>', ' '.join(messages)
@@ -71,6 +72,7 @@ def main():
     #needed to delete obsolete instances
     row = selectOneInTable('instances', 'min(creationdate)')
 #    if row[0] and (now - row[0]) > timedelta(hours=23):
+#    if row[0] and (now - row[0]) > timedelta(minutes=5):
     if True:
         deleteTable('instances')
         deleteTable('products')
@@ -95,11 +97,13 @@ def main():
 
     inst_id = getInstanceId(instance)
 
-    # Getting some informations in config file
+    # Getting some informations in zopectl file (zope path, zope version)
     read_zopectlfile(zopectlfilename, inst_id)
+
+    # Getting some informations in zope.conf file (port, mount points)
     port = treat_zopeconflines(zodbfilename, fspath, inst_id)
 
-    # Getting products path
+    # Getting products in a list
     readProductsDir(instdir, pfolders)
 
 #    input('Press a key to continue')
@@ -125,7 +129,7 @@ def main():
         os.chdir(pfolders[product])
 
         #Getting local version in version.txt
-        local_version = getLocalVersion('version.txt')
+        local_version = getLocalVersion(pfolders[product])
         trace("local version=%s"%local_version)
 
         #Testing if product is svn linked
@@ -201,6 +205,8 @@ def main():
 #             error( "'%s' NOT COPIED to '%s'" % (ext_filename, ext_file))
 #             error(str(errmsg))
 #             sys.exit(1)
+
+    return
 
     #creating and calling external method in zope
     host = "http://localhost:%s" % port
@@ -310,12 +316,30 @@ def runCommand(cmd):
 
 #------------------------------------------------------------------------------
 
-def getLocalVersion(filename):
-    """ get the content of version.txt file """ 
-    command = 'pg '+filename
-    (out, err) = runCommand(command)
-    if out:
-        return out[0].strip('\n ')
+def getLocalVersion(product_dir):
+    """ get the version in version.txt or metadata.xml file """ 
+    txt_version = xml_version = ''
+    file_name = os.path.join(product_dir, 'version.txt')
+    if os.path.exists(file_name):
+        command = 'pg '+filename
+        (out, err) = runCommand(command)
+        if out:
+            txt_version = out[0].strip('\n ')
+    file_name = os.path.join(product_dir, 'profiles/default/metadata.xml')
+
+    if os.path.exists(file_name):
+        metadata = ProfileMetadata(os.path.join(product_dir, 'profiles/default'))()
+        xml_version = metadata.get( 'version', None ).strip('\n ')
+
+    if txt_version and xml_version:
+        if txt_version != xml_version:
+            return "%s | %s"%(xml_version, txt_version)
+        else:
+            return txt_version
+    elif xml_version:
+        return xml_version
+    elif txt_version:
+        return txt_version
     return None
 
 #------------------------------------------------------------------------------
@@ -357,8 +381,9 @@ def getRepositoryVersion(url, product):
         error("error running command %s : %s" % (command, ''.join(cmd_err)))
         return(rep_version, rep_rev)
 
-    os.chdir(os.path.join(tempdir, product))
-    rep_version = getLocalVersion('version.txt')
+    product_dir = os.path.join(tempdir, product)
+    os.chdir(product_dir)
+    rep_version = getLocalVersion(product_dir)
 #    verbose("rep version=%s"%rep_version)
 
     svn_cmd = 'svn info'
@@ -463,11 +488,7 @@ def read_zopectlfile(zopectlfilename, inst_id):
             zopepath = zopepath.strip('"\' ')
             if not updateTable('instances', "zope_path='%s'"%(zopepath), "id = %s"%inst_id):
                 sys.exit(1)
-            version_path = os.path.join(zopepath, 'lib/python/Zope2/version.txt')
-            if not os.path.exists(version_path):
-                error("file '%s' cannot be found"%version_path)
-                continue
-            zope_version = getLocalVersion(version_path)
+            zope_version = getLocalVersion(os.path.join(zopepath, 'lib/python/Zope2'))
             if zope_version:
                 updateTable('instances', "zope_version='%s'"%(zope_version), "id = %s"%inst_id)
 

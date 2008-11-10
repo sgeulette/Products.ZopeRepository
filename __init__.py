@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# File: CPUtils.py
+# File: ZopeRepository.py
 #
 # Copyright (c) 2008 by CommunesPlone
 # Generator: ArchGenXML Version 1.5.2
@@ -39,7 +39,7 @@ __docformat__ = 'plaintext'
 #       with a method register(context) to register the policy.
 
 import logging
-logger = logging.getLogger('CPUtils')
+logger = logging.getLogger('ZopeRepository')
 logger.info('Installing Product')
 
 try:
@@ -64,7 +64,7 @@ from Products.Archetypes.utils import capitalize
 from config import *
 
 DirectoryView.registerDirectory('skins', product_globals)
-DirectoryView.registerDirectory('skins/CPUtils',
+DirectoryView.registerDirectory('skins/ZopeRepository',
                                     product_globals)
 
 ##code-section custom-init-head #fill in your manual code here
@@ -94,7 +94,7 @@ def initialize(context):
     # Apply customization-policy, if theres any
     if CustomizationPolicy and hasattr(CustomizationPolicy, 'register'):
         CustomizationPolicy.register(context)
-        print 'Customization policy for CPUtils installed'
+        print 'Customization policy for ZopeRepository installed'
 
     ##code-section custom-init-bottom #fill in your manual code here
     ##/code-section custom-init-bottom
