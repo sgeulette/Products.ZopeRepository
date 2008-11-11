@@ -115,8 +115,8 @@ def main():
     fkeys = pfolders.keys()
     fkeys.sort()
     for product in fkeys:
-        if product != 'BelgianEidAuthPlugin':
-            continue
+#        if product != 'BelgianEidAuthPlugin':
+#            continue
         local_version = None
         local_rev = None
         rep_url = None
