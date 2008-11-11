@@ -9,6 +9,7 @@ import sys, os, commands, string, re, shutil
 import psycopg2
 import urllib
 from datetime import datetime, timedelta
+import socket
 
 def verbose(*messages):
     print '>>', ' '.join(messages)
@@ -65,9 +66,10 @@ def main():
     instance = os.path.basename(instdir)
     if not tempdir:
         tempdir = os.path.join(instdir, 'temp')
+    hostname = socket.gethostname()
 
-    trace("inst='%s', zodbf='%s', zopectlf='%s', fspath='%s', products='%s'"
-        %(instance, zodbfilename, zopectlfilename, fspath, productsdir))
+    trace("host='%s', inst='%s', zodbf='%s', zopectlf='%s', fspath='%s', products='%s'"
+        %(hostname, instance, zodbfilename, zopectlfilename, fspath, productsdir))
 
     #deletion of table instances if the older record is >23h, as the script is run on all instances each night
     #needed to delete obsolete instances
@@ -76,12 +78,20 @@ def main():
     if row[0] and (now - row[0]) > timedelta(minutes=8):
 #    if True:
         deleteTable('instances')
+        deleteTable('servers')
         deleteTable('products')
         deleteTable('instances_products')
         deleteTable('plonesites')
         deleteTable('plonesites_products')
         deleteTable('mountpoints')
-    
+
+    #Creation or update of the instance information
+    row = selectOneInTable('servers', '*', "server = '%s'"%hostname)
+    if not row and insertInTable('servers', "server, ip_address", "'%s', '%s'"
+                %(hostname, socket.gethostbyname(hostname))):
+        sys.exit(1)
+    server_id = getServerId()
+
     #Creation or update of the instance information
     row = selectOneInTable('instances', '*', "instance = '%s'"%instance)
     if row:
@@ -92,8 +102,8 @@ def main():
         deleteTable('instances_products', "instance_id = %s"%row[0])
         deleteTable('plonesites', "instance_id = %s"%row[0])
         deleteTable('mountpoints', "instance_id = %s"%row[0])
-    elif not insertInTable('instances', "instance, creationdate, type", "'%s', '%s', '%s'"
-                %(instance, now, inst_type)):
+    elif not insertInTable('instances', "instance, creationdate, type, server_id", "'%s', '%s', '%s', %s"
+                %(instance, now, inst_type, server_id)):
         sys.exit(1)
 
     inst_id = getInstanceId(instance)
@@ -615,6 +625,14 @@ def deleteTable(table, condition=''):
 
 def getProductId(product):
     row = selectOneInTable('products', 'id', "product = '%s'"%product)
+    if row:
+        return row[0]
+    return 0
+
+#------------------------------------------------------------------------------
+
+def getServerId():
+    row = selectOneInTable('servers', 'id', "server = '%s'"%socket.gethostname())
     if row:
         return row[0]
     return 0
