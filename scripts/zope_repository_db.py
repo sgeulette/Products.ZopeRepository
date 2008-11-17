@@ -36,6 +36,7 @@ TRACE = False
 def main():
     global instdir, tempdir, buildout_inst_type
 
+#    import pdb; pdb.set_trace()
     instdir = instdir.rstrip('/')
     verbose("Working on instance %s" % instdir)
 
@@ -74,8 +75,8 @@ def main():
     #deletion of table instances if the older record is >23h, as the script is run on all instances each night
     #needed to delete obsolete instances
     row = selectOneInTable('instances', 'min(creationdate)')
-#    if row[0] and (now - row[0]) > timedelta(hours=23):
-    if row[0] and (now - row[0]) > timedelta(minutes=8):
+    if row[0] and (now - row[0]) > timedelta(hours=3):
+#    if row[0] and (now - row[0]) > timedelta(minutes=8):
 #    if True:
         deleteTable('instances')
         deleteTable('servers')
@@ -87,7 +88,7 @@ def main():
 
     #Creation or update of the instance information
     row = selectOneInTable('servers', '*', "server = '%s'"%hostname)
-    if not row and insertInTable('servers', "server, ip_address", "'%s', '%s'"
+    if not row and not insertInTable('servers', "server, ip_address", "'%s', '%s'"
                 %(hostname, socket.gethostbyname(hostname))):
         sys.exit(1)
     server_id = getServerId()
@@ -337,12 +338,16 @@ def getLocalVersion(product_dir):
     if os.path.exists(file_name):
         lines = []
         read_zopeconffile(file_name, lines)
+        found = False
         for line in lines:
             line = line.strip('\n\t ')
             if line.startswith('<version>'):
                 line = line[9:].replace('</version>','')
-                xml_version = line.strip('\n\t ')
-                break
+                xml_temp = line.strip('\n\t ')
+                if found and xml_version != xml_temp:
+                    error("Already found xml version ('%s' <> new '%s') in '%s'"%(xml_version, xml_temp, file_name))
+                xml_version = xml_temp
+                found = True
 
     if txt_version and xml_version:
         if txt_version != xml_version:
