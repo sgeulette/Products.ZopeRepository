@@ -233,10 +233,12 @@ def main():
             try:
                 verbose("Running now '%s'"%url_em)
                 ret_html = urllib.urlopen(url_em).read()
-                if 'the requested resource does not exist' in ret_html:
-                    error('Cannot create external method in zope')
+                if 'the requested resource does not exist' in ret_html or \
+                    ('The specified module' in ret_html and "couldn't be found" in ret_html):
+                    error("Cannot create external method in zope : '%s'"%ret_html)
                     sys.exit(1)
                 else:
+                    #verbose("return of creation='%s'"%ret_html)
                     try:
                         verbose("Running again '%s'"%url_pv)
                         ret_html = urllib.urlopen(url_pv).read()
