@@ -24,6 +24,12 @@ def trace(*messages):
 pdir = ''
 dsn="dbname=zoperepos user=zoperepos password=zopeREP1"
 TRACE=True
+try:
+    #The ZopeRepositoryLocalPassword product can be put in the buildout 'products' subdirectory
+    from Products.ZopeRepositoryLocalPassword.config import ZOPEREPOSITORYPASSWORD
+    dsn = dsn.replace('zopeREP1', ZOPEREPOSITORYPASSWORD)
+except ImportError:
+    pass
 
 ###############################################################################
 
