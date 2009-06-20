@@ -71,6 +71,7 @@ def walkInZope(self):
 def productsPloneSite(site_obj, plonesite, path, inst_id):
     """ finding in the plone site the installed products """
     #creating plonesites row
+    import pdb; pdb.set_trace()
     row = selectOneInTable('plonesites', 'id', "instance_id = %s and plonesite = '%s' and path = '%s'"%(inst_id,plonesite,path))
     if not row and not insertInTable('plonesites', "instance_id, plonesite, path", "%s, '%s', '%s'"%(inst_id, plonesite, path)):
         return
@@ -89,7 +90,7 @@ def productsPloneSite(site_obj, plonesite, path, inst_id):
     for aproduct in pqi.listInstalledProducts():
         product_id = getProductId(aproduct['id'])
         insertInTable('plonesites_products', "plonesite_id, product_id, status, errors, installed_version"
-            , "%s, %s, '%s', %s, '%s'"%(ps_id, product_id, aproduct['status'], aproduct['hasError'], aproduct['installedVersion']))
+            , "%s, %s, '%s', %s, '%s'"%(ps_id, product_id, aproduct['status'], int(aproduct['hasError']), aproduct['installedVersion']))
 
 #------------------------------------------------------------------------------
 
