@@ -40,6 +40,10 @@ def walkInZope(self):
     from Products.CMFCore.utils import getToolByName
     from Globals import INSTANCE_HOME
 
+    from Products.ZopeRepository.Extensions.utils import check_zope_admin
+    if not check_zope_admin(self):
+        return 'walkInZope run with a non admin user: we go out'
+
     instance = INSTANCE_HOME.rstrip('/')
     # in a buildout, INSTANCE_HOME = xxx/parts/instance
     if instance.endswith('/parts/instance'):
@@ -47,7 +51,7 @@ def walkInZope(self):
     instance = os.path.basename(instance)
     inst_id = getInstanceId(instance)
     if not inst_id:
-        return
+        return "Instance '%s' not found in database"%instance
 
     deleteTable('plonesites', "instance_id = %s"%inst_id)
 
@@ -59,6 +63,8 @@ def walkInZope(self):
                 productsPloneSite(sobj, sobjid, '/' + objid, inst_id)
         elif obj.meta_type == 'Plone Site':
             productsPloneSite(obj, objid, '/', inst_id)
+    
+    return 'walkInZope finished'
 
 #------------------------------------------------------------------------------
 

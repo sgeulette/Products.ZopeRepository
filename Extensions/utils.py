@@ -6,3 +6,9 @@ def check_role(self, role='Manager', context=None):
 
 ###############################################################################
 
+def check_zope_admin(self):
+    from AccessControl.SecurityManagement import getSecurityManager
+    user = getSecurityManager().getUser()
+    if user.has_role('Manager') and user.__module__ == 'Products.PluggableAuthService.PropertiedUser':
+        return True
+    return False

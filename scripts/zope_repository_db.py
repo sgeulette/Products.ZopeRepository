@@ -222,34 +222,60 @@ def main():
     host = "http://localhost:%s" % port
     urllib._urlopener = MyUrlOpener()
     url_pv = "%s/%s" % (host, ext_method)
+    current_url = url_pv
     try:
-        verbose("Running '%s'"%url_pv)
-        ret_html = urllib.urlopen(url_pv).read()
+        verbose("Running '%s'"%current_url)
+        ret_html = urllib.urlopen(current_url).read()
         if 'the requested resource does not exist' in ret_html:
             verbose('external method %s not exist : we will create it'%ext_method)
             (module, extension) = os.path.splitext(ext_filename)
             module = 'ZopeRepository.' + module
-            url_em = "%s/manage_addProduct/ExternalMethod/manage_addExternalMethod?id=%s&module=%s&function=%s&title="%(host, ext_method, module, function)
-            try:
-                verbose("Running now '%s'"%url_em)
-                ret_html = urllib.urlopen(url_em).read()
-                if 'the requested resource does not exist' in ret_html or \
-                    ('The specified module' in ret_html and "couldn't be found" in ret_html):
-                    error("Cannot create external method in zope : '%s'"%ret_html)
-                    sys.exit(1)
-                else:
-                    #verbose("return of creation='%s'"%ret_html)
-                    try:
-                        verbose("Running again '%s'"%url_pv)
-                        ret_html = urllib.urlopen(url_pv).read()
-                    except IOError:
-                        error("Cannot open URL %s, aborting" % url_pv)
-                        sys.exit(1)
-            except:
-                error("Cannot open URL %s, aborting" % url_em)
+            current_url = "%s/manage_addProduct/ExternalMethod/manage_addExternalMethod?id=%s&module=%s&function=%s&title="%(host, ext_method, module, function)
+            verbose("Running now '%s'"%current_url)
+            ret_html = urllib.urlopen(current_url).read()
+            if 'the requested resource does not exist' in ret_html or \
+                ('The specified module' in ret_html and "couldn't be found" in ret_html):
+                error("Cannot create external method in zope : '%s'"%ret_html)
                 sys.exit(1)
-    except IOError:
-        error("Cannot open URL %s, aborting" % url_pv)
+            else:
+                current_url = "%s/%s/valid_roles" % (host, ext_method)
+                verbose("Running now '%s'"%current_url)
+                ret_html = urllib.urlopen(current_url).read()
+                if not ret_html[0] == '(':
+                    error("error with valid_roles return: '%s'"%ret_html)
+                    sys.exit(1)
+                valid_roles = list(eval(ret_html))
+                managerindex = valid_roles.index('Manager')
+                current_url = "%s/%s/permission_settings" % (host, ext_method)
+                verbose("Running now '%s'"%current_url)
+                ret_html = urllib.urlopen(current_url).read()
+                if not ret_html[0] == '[':
+                    error("error with permission_settings return: '%s'"%ret_html)
+                    sys.exit(1)
+                permission_settings = eval(ret_html)
+                params = {}
+                count = 0
+                for perm in permission_settings:
+                    if perm['name'] in ('Access contents information','View'):
+                        params['p%dr%d'%(count,managerindex)] = 'on'
+                    else:
+                        params['a%d'%count] = 'on'
+                    count += 1
+                current_url = "%s/%s/manage_changePermissions" % (host, ext_method)
+                verbose("Running now '%s'"%current_url)
+# params example                       params = {  'permission_to_manage':'View', 
+#                                    'roles':['Manager'], }
+                data = urllib.urlencode(params)
+                ret_html = urllib.urlopen(current_url, data).read()
+                if 'Your changes have been saved' not in ret_html:
+                    error("Error changing permissions with URL '%s', data '%s'" % (current_url,str(data)))
+                    sys.exit(1)
+                current_url = url_pv
+                verbose("Running again '%s'"%current_url)
+                ret_html = urllib.urlopen(current_url).read()
+        verbose("zope_infos ='%s'"%ret_html)
+    except Exception, msg:
+        error("Cannot open URL %s, aborting: '%s'" % (current_url,msg))
         sys.exit(1)
 
 #------------------------------------------------------------------------------
