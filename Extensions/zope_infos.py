@@ -71,7 +71,6 @@ def walkInZope(self):
 def productsPloneSite(site_obj, plonesite, path, inst_id):
     """ finding in the plone site the installed products """
     #creating plonesites row
-    import pdb; pdb.set_trace()
     row = selectOneInTable('plonesites', 'id', "instance_id = %s and plonesite = '%s' and path = '%s'"%(inst_id,plonesite,path))
     if not row and not insertInTable('plonesites', "instance_id, plonesite, path", "%s, '%s', '%s'"%(inst_id, plonesite, path)):
         return
