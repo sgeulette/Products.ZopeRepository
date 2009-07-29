@@ -395,13 +395,13 @@ def getRevision(lines):
     for line in lines:
         rev_nb = line.strip('\n ')
         #works on all2all server
-        if re.compile(r'^R.vision : (\d+)$').match(rev_nb):
-            rev_nb = re.compile(r'^R.vision : (\d+)$').match(rev_nb).group(1)
+        if re.compile(r'^R.vision ?: (\d+)$').match(rev_nb):
+            rev_nb = re.compile(r'^R.vision ?: (\d+)$').match(rev_nb).group(1)
 #            verbose("Local revision = %s"%rev_nb)
             return rev_nb
         #works locally
-        elif re.compile(r'^Révision : (\d+)$').match(rev_nb):
-            rev_nb = re.compile(r'^Révision : (\d+)$').match(rev_nb).group(1)
+        elif re.compile(r'^Révision ?: (\d+)$').match(rev_nb):
+            rev_nb = re.compile(r'^Révision ?: (\d+)$').match(rev_nb).group(1)
 #            verbose("Local revision = %s"%rev_nb)
             return rev_nb
     error("Revision not matched")
