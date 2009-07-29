@@ -158,8 +158,8 @@ def main():
             #trace('output=%s'%"".join(svn_out))
             #Getting svn repository url
             rep_url = svn_out[1].strip('\n ')
-            if rep_url.startswith('URL : '):
-                rep_url = rep_url[6:]
+            if rep_url.startswith('URL'):
+                rep_url = rep_url[3:].strip(' :')
                 trace("svn URL = '%s'"%rep_url)
             else:
                 error("URL not matched : '%s'"%rep_url)
