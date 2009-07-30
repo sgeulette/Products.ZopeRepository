@@ -192,8 +192,10 @@ def main():
                 else:
                     diff_flag = 'No'
 
-        verbose("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
+        trace("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
             %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count))
+        verbose("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
+            %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, 'too long', diff_count))
         insertInstancesProducts(instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count)
 
     product_id = getProductId('CMFPlone')
