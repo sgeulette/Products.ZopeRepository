@@ -194,8 +194,11 @@ def main():
 
         trace("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
             %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count))
+        diff_lines_to_print = diff_lines
+        if diff_lines_to_print:
+            diff_lines_to_print = 'too long'
         verbose("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
-            %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, 'too long', diff_count))
+            %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines_to_print, diff_count))
         insertInstancesProducts(instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count)
 
     product_id = getProductId('CMFPlone')
