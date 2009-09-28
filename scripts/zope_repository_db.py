@@ -25,7 +25,8 @@ tempdir = ''
 now = datetime(1973,02,12).now()
 pfolders = {}
 temp_added = False
-dsn="dbname=zoperepos user=zoperepos password=zopeREP1"
+#dsn="host=localhost port=5433 dbname=zoperepos user=zoperepos password=zopeREP1"
+dsn="host=localhost dbname=zoperepos user=zoperepos password=zopeREP1"
 ext_method = 'zope_repository_infos'
 ext_filename = 'zope_infos.py'
 function = 'walkInZope'
