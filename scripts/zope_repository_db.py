@@ -25,7 +25,7 @@ tempdir = ''
 now = datetime(1973,02,12).now()
 pfolders = {}
 temp_added = False
-#dsn="host=localhost port=5433 dbname=zoperepos user=zoperepos password=zopeREP1"
+#dsn="host=localhost port=5432 dbname=zoperepos user=zoperepos password=zopeREP1"
 dsn="host=localhost dbname=zoperepos user=zoperepos password=zopeREP1"
 ext_method = 'zope_repository_infos'
 ext_filename = 'zope_infos.py'
@@ -87,28 +87,33 @@ def main():
         deleteTable('plonesites_products')
         deleteTable('mountpoints')
 
-    #Creation or update of the instance information
+    #hostname = '127.0.0.1' # to test if it work with another hostname
+    #Creation or update of the server information
     row = selectOneInTable('servers', '*', "server = '%s'"%hostname)
     if not row and not insertInTable('servers', "server, ip_address", "'%s', '%s'"
                 %(hostname, socket.gethostbyname(hostname))):
         sys.exit(1)
-    server_id = getServerId()
+    server_id = getServerId(hostname)
+
+    (is_svn, rep_url, local_rev) = svnInformation(instdir)
 
     #Creation or update of the instance information
-    row = selectOneInTable('instances', '*', "instance = '%s'"%instance)
-    if row:
-        if not updateTable('instances', "creationdate='%s'"%(now), "id = %s"%row[0]):
+    inst_id = getInstanceId(instance, server_id)
+    if inst_id:
+        if not updateTable('instances', "creationdate='%s'"%(now), "id = %s"%inst_id):
             sys.exit(1)
-        if not updateTable('instances', "type='%s'"%(inst_type), "id = %s"%row[0]):
+        if not updateTable('instances', "type='%s'"%(inst_type), "id = %s"%inst_id):
             sys.exit(1)
-        deleteTable('instances_products', "instance_id = %s"%row[0])
-        deleteTable('plonesites', "instance_id = %s"%row[0])
-        deleteTable('mountpoints', "instance_id = %s"%row[0])
-    elif not insertInTable('instances', "instance, creationdate, type, server_id", "'%s', '%s', '%s', %s"
-                %(instance, now, inst_type, server_id)):
+        if not updateTable('instances', "repository_address='%s'"%(rep_url), "id = %s"%inst_id):
+            sys.exit(1)
+        deleteTable('instances_products', "instance_id = %s"%inst_id)
+        deleteTable('plonesites', "instance_id = %s"%inst_id)
+        deleteTable('mountpoints', "instance_id = %s"%inst_id)
+    elif not insertInTable('instances', "instance, creationdate, type, server_id, repository_address", "'%s', '%s', '%s', %s, '%s'"
+                %(instance, now, inst_type, server_id, rep_url)):
         sys.exit(1)
 
-    inst_id = getInstanceId(instance)
+    inst_id = getInstanceId(instance, server_id)
 
     # Getting some informations in zopectl file (zope path, zope version)
     read_zopectlfile(zopectlfilename, inst_id)
@@ -146,31 +151,7 @@ def main():
         trace("local version=%s"%local_version)
 
         #Testing if product is svn linked
-        is_svn = True
-        svn_cmd = 'svn info'
-        (svn_out, svn_err) = runCommand(svn_cmd)
-        if svn_err:
-            if svn_err[0].startswith("svn: '.' "):
-                is_svn = False
-                pass
-            else:
-                error("error running command %s : %s" % (svn_cmd, ''.join(svn_err)))
-        elif svn_out:
-            #trace('output=%s'%"".join(svn_out))
-            #Getting svn repository url
-            rep_url = svn_out[1].strip('\n ')
-            if rep_url.startswith('URL'):
-                rep_url = rep_url[3:].strip(' :')
-                trace("svn URL = '%s'"%rep_url)
-            else:
-                error("URL not matched : '%s'"%rep_url)
-            if not (rep_url.startswith('http://') or rep_url.startswith('https://')):
-                error("URL not beginning by http(s):// : '%s'"%rep_url)
-            #Getting local repository version
-            local_rev = getRevision(svn_out)
-            trace("Local revision = %s"%local_rev)
-        else:
-            error('No output for command%s'%svn_cmd)
+        (is_svn, rep_url, local_rev) = svnInformation(pfolders[product])
 
         if is_svn:
             (rep_version, rep_rev) = getRepositoryVersion(rep_url, product)
@@ -200,7 +181,7 @@ def main():
             diff_lines_to_print = 'too long'
         verbose("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
             %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines_to_print, diff_count))
-        insertInstancesProducts(instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count)
+        insertInstancesProducts(server_id, instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count)
 
     product_id = getProductId('CMFPlone')
     if product_id:
@@ -317,6 +298,38 @@ def getSubdirs(dirpath):
     return folders
 
 #------------------------------------------------------------------------------
+
+def svnInformation(dirpath):
+    """ get svn information on a directory """
+    os.chdir(dirpath)
+    #Testing if product is svn linked
+    is_svn = True
+    local_rev = None
+    rep_url = None
+    svn_cmd = 'svn info'
+    (svn_out, svn_err) = runCommand(svn_cmd)
+    if svn_err:
+        if svn_err[0].startswith("svn: '.' "):
+            is_svn = False
+        else:
+            error("error running command %s : %s" % (svn_cmd, ''.join(svn_err)))
+    elif svn_out:
+        #trace('output=%s'%"".join(svn_out))
+        #Getting svn repository url
+        rep_url = svn_out[1].strip('\n ')
+        if rep_url.startswith('URL'):
+            rep_url = rep_url[3:].strip(' :')
+            trace("svn URL = '%s'"%rep_url)
+        else:
+            error("URL not matched : '%s'"%rep_url)
+        if not (rep_url.startswith('http://') or rep_url.startswith('https://')):
+            error("URL not beginning by http(s):// : '%s'"%rep_url)
+        #Getting local repository version
+        local_rev = getRevision(svn_out)
+        trace("Local revision = %s"%local_rev)
+    else:
+        error('No output for command%s'%svn_cmd)
+    return(is_svn, rep_url, local_rev)
 
 #problem with big output : subprocess is frozen
 def runCommand2(cmd):
@@ -670,16 +683,16 @@ def getProductId(product):
 
 #------------------------------------------------------------------------------
 
-def getServerId():
-    row = selectOneInTable('servers', 'id', "server = '%s'"%socket.gethostname())
+def getServerId(hostname):
+    row = selectOneInTable('servers', 'id', "server = '%s'"%hostname)
     if row:
         return row[0]
     return 0
 
 #------------------------------------------------------------------------------
 
-def getInstanceId(instance):
-    row = selectOneInTable('instances', 'id', "instance = '%s'"%instance)
+def getInstanceId(instance, server_id):
+    row = selectOneInTable('instances', 'id', "instance = '%s' and server_id = %d"%(instance, server_id))
     if row:
         return row[0]
     return 0
@@ -694,8 +707,8 @@ def getInstancesProductsId(inst_id, product_id):
 
 #------------------------------------------------------------------------------
 
-def insertInstancesProducts(instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_out, diff_count):
-    inst_id = getInstanceId(instance)
+def insertInstancesProducts(server_id, instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_out, diff_count):
+    inst_id = getInstanceId(instance, server_id)
     product_id = getProductId(product)
     if not product_id:
         if not insertInTable('products', "product", "'%s'"%(product)):
