@@ -7,6 +7,7 @@
 
 import sys, os, string, shutil
 import psycopg2
+import socket
 import logging
 logger = logging.getLogger('zope_repository_infos :')
 
@@ -24,6 +25,7 @@ def trace(*messages):
 pdir = ''
 dsn="host=localhost dbname=zoperepos user=zoperepos password=zopeREP1"
 TRACE=True
+
 try:
     #The ZopeRepositoryLocalPassword product can be put in the buildout 'products' subdirectory
     from Products.ZopeRepositoryLocalPassword.config import *
@@ -50,7 +52,14 @@ def walkInZope(self):
     if instance.endswith('/parts/instance'):
         instance = instance.replace('/parts/instance', '')
     instance = os.path.basename(instance)
-    inst_id = getInstanceId(instance)
+
+    hostname = socket.gethostname()
+    #hostname = '127.0.0.1' # to test if it work with another hostname
+    trace("hostname='%s'"%hostname)
+    row = selectOneInTable('servers', 'id', "server = '%s'"%hostname)
+    server_id = row[0]
+
+    inst_id = getInstanceId(instance, server_id)
     if not inst_id:
         return "Instance '%s' not found in database"%instance
 
@@ -94,8 +103,8 @@ def productsPloneSite(site_obj, plonesite, path, inst_id):
 
 #------------------------------------------------------------------------------
 
-def getInstanceId(instance):
-    row = selectOneInTable('instances', 'id', "instance = '%s'"%instance)
+def getInstanceId(instance, server_id):
+    row = selectOneInTable('instances', 'id', "instance = '%s' and server_id = %d"%(instance, server_id))
     if row:
         return row[0]
     else:
