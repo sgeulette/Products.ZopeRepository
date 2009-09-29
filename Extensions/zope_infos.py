@@ -22,12 +22,13 @@ def trace(*messages):
     logger.debug('TRACE:'+(' '.join(messages)))
 
 pdir = ''
-dsn="dbname=zoperepos user=zoperepos password=zopeREP1"
+dsn="host=localhost dbname=zoperepos user=zoperepos password=zopeREP1"
 TRACE=True
 try:
     #The ZopeRepositoryLocalPassword product can be put in the buildout 'products' subdirectory
-    from Products.ZopeRepositoryLocalPassword.config import ZOPEREPOSITORYPASSWORD
+    from Products.ZopeRepositoryLocalPassword.config import *
     dsn = dsn.replace('zopeREP1', ZOPEREPOSITORYPASSWORD)
+    dsn = dsn.replace('localhost', ZOPEREPOSITORYHOST)
 except ImportError:
     pass
 
