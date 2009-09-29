@@ -1,5 +1,5 @@
 --
--- PostgreSQL database dump
+-- PostgreSQL database dump : can be run with command 'psql -f postgres_db_creation.sql'
 --
 
 SET client_encoding = 'UTF8';
