@@ -31,7 +31,7 @@ try:
     from Products.ZopeRepositoryLocalPassword.config import *
     dsn = dsn.replace('zopeREP1', ZOPEREPOSITORYPASSWORD)
     dsn = dsn.replace('localhost', ZOPEREPOSITORYHOST)
-except ImportError:
+except (ImportError, NameError):
     pass
 
 ###############################################################################
