@@ -17,6 +17,8 @@ def trace(*messages):
         return
     print 'TRACE:', ' '.join(messages)
 
+TRACE = False
+
 #dsn="host=localhost port=5432 dbname=zoperepos user=zoperepos password=zopeREP1"
 dsn="host=localhost dbname=zoperepos user=zoperepos password=zopeREP1"
 
