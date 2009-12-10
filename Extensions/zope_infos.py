@@ -6,9 +6,9 @@
 #
 
 import sys, os, string, shutil
-import psycopg2
 import socket
 import logging
+from Products.ZopeRepository.scripts.postgres_utilities import *
 logger = logging.getLogger('zope_repository_infos :')
 
 def verbose(*messages):
@@ -130,117 +130,3 @@ def getProductId(product):
     return 0
 
 #------------------------------------------------------------------------------
-
-def openConnection():
-    """ open a postgres connection """
-    conn = None
-    try:
-        #param :: dbname user password
-        conn=psycopg2.connect(dsn)
-    except Exception, message:
-        error("Cannot connect to database %s with dsn '%s'"%(message, dsn))
-    return conn
-
-#------------------------------------------------------------------------------
-
-def insertInTable(table, columns, vals):
-    """ insert values in a table """
-    conn = openConnection()
-    cursor = conn.cursor()
-    req="insert into %s(%s) \
-                values(%s)"%(table, columns, vals)
-#    verbose("Insertion : %s"%req)
-    try:
-        cursor.execute(req)
-    except Exception, message:
-        error("Cannot insert in database : %s"%message)
-        error("Request was : '%s'"%req)
-        conn.close()
-        return False
-    conn.commit()
-    conn.close()
-    return True
-
-#------------------------------------------------------------------------------
-
-def updateTable(table, updates, condition=''):
-    """ update columns in a table """
-    conn = openConnection()
-    cursor = conn.cursor()
-    req="update %s set %s"%(table, updates)
-    if condition:
-        req += ' where %s'%condition
-#    verbose("Update : %s"%req)
-    try:
-        cursor.execute(req)
-    except Exception, message:
-        error("Cannot update in database : %s"%message)
-        error("Request was : '%s'"%req)
-        conn.close()
-        return False
-    conn.commit()
-    conn.close()
-    return True
-
-#------------------------------------------------------------------------------
-
-def selectAllInTable(table, selection, condition=''):
-    """ select multiple lines in a table """
-    conn = openConnection()
-    cursor = conn.cursor()
-    req="select %s from %s"%(selection, table)
-    if condition:
-        req += ' where %s'%condition
-#    verbose("Selection : %s"%req)
-    try:
-        cursor.execute(req)
-        data = cursor.fetchall()
-    except Exception, message:
-        error("Cannot select from database : %s"%message)
-        error("Request was : '%s'"%req)
-        conn.close()
-        return None
-    conn.close()
-    return data
-
-#------------------------------------------------------------------------------
-
-def selectOneInTable(table, selection, condition=''):
-    """ select a single line in a table """
-    conn = openConnection()
-    cursor = conn.cursor()
-    req="select %s from %s"%(selection, table)
-    if condition:
-        req += ' where %s'%condition
-#    verbose("Selection : %s"%req)
-    try:
-        cursor.execute(req)
-        data = cursor.fetchone()
-    except Exception, message:
-        error("Cannot select from database : %s"%message)
-        error("Request was : '%s'"%req)
-        conn.close()
-        return None
-    conn.close()
-    return data
-
-#------------------------------------------------------------------------------
-
-def deleteTable(table, condition=''):
-    """ delete a table """
-    conn = openConnection()
-    cursor = conn.cursor()
-    req="delete from %s"%(table)
-    if condition:
-        req += ' where %s'%condition
-    #verbose("Deletion : %s"%req)
-    try:
-        cursor.execute(req)
-    except Exception, message:
-        error("Cannot delete from database : %s"%message)
-        error("Request was : '%s'"%req)
-        conn.close()
-        return False
-    conn.commit()
-    conn.close()
-    return True
