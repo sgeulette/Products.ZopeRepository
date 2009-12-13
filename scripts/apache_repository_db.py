@@ -45,9 +45,13 @@ def main():
     verbose("Begin of %s"%sys.argv[0])
     global serverroot, log
 
-    deleteTable('apaches')
-    deleteTable('virtualhosts')
-    deleteTable('rewrites')
+    row = selectOneInTable('apaches', 'min(creationdate)')
+    if row[0] and (now - row[0]) > timedelta(hours=3):
+#    if row[0] and (now - row[0]) > timedelta(minutes=8):
+#    if True:
+        deleteTable('apaches')
+        deleteTable('virtualhosts')
+        deleteTable('rewrites')
 
     hostname = socket.gethostname()
     row = selectOneInTable('servers', '*', "server = '%s'"%hostname)
@@ -62,7 +66,7 @@ def main():
             analyze_conf(apache_dic['path'], apache_dic['name'], server_id)
         elif apache_dic['type'] == 'd':
             if not os.path.isdir(apache_dic['path']):
-                error("directory '%s' doesn't exist"%dirpath)
+                error("directory '%s' doesn't exist"%apache_dic['path'])
                 continue
             fileslist = os.listdir(apache_dic['path'])
             fileslist.sort()
