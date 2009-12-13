@@ -32,7 +32,6 @@ SET search_path = public, pg_catalog;
 --
 
 CREATE SEQUENCE apaches_id_seq
-    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -53,7 +52,8 @@ CREATE TABLE apaches (
     id integer DEFAULT nextval('apaches_id_seq'::regclass) NOT NULL,
     name character varying(20),
     conf_file character varying(250),
-    creationdate timestamp without time zone
+    creationdate timestamp without time zone,
+    server_id integer NOT NULL
 );
 
 
@@ -242,7 +242,6 @@ ALTER TABLE public.products OWNER TO zoperepos;
 --
 
 CREATE SEQUENCE rewrites_id_seq
-    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -305,7 +304,6 @@ ALTER SEQUENCE servers_id_seq OWNED BY servers.id;
 --
 
 CREATE SEQUENCE virtualhosts_id_seq
-    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -324,7 +322,8 @@ CREATE TABLE virtualhosts (
     virtualhost character varying(25),
     servername character varying(100),
     logfile character varying(250),
-    redirect character varying(100)
+    redirect character varying(100),
+    ip character varying(24)
 );
 
 
