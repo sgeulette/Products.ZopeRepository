@@ -323,7 +323,8 @@ CREATE TABLE virtualhosts (
     servername character varying(100),
     logfile character varying(250),
     redirect character varying(100),
-    ip character varying(24)
+    ip character varying(24),
+    protocol character varying(10)
 );
 
 
