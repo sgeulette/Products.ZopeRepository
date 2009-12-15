@@ -97,7 +97,7 @@ def analyze_conf(conf_file, apache_name, server_id):
     except IOError:
         error("Cannot open %s file" % conf_file)
         return
-    vhost = servername = log_vh = redirect_code = redirect_from = redirect_to = servernameip = protocol = ''
+    vhost = servername = log_vh = redirect_code = redirect_from = redirect_to = servernameip = protocol = vh_ip = ''
     rewrites = []
     lnb = 0
     for line in cfile.readlines():
@@ -111,7 +111,7 @@ def analyze_conf(conf_file, apache_name, server_id):
         if res:
             vhost = res.group(1)
             if vhost.find(':') > 0:
-                port = vhost.split(':')[-1]
+                (vh_ip, port) = vhost.split(':')
                 protocol = (port == '80' and 'http' or (port == '443' and 'https' or '')) 
             continue
 
@@ -175,7 +175,7 @@ def analyze_conf(conf_file, apache_name, server_id):
         if pat_virtualhost_end.match(line):
             if not vhost:
                 error("Found the end of a virtualhost while begin was not found, %d:'%s'"%(lnb,line))
-                vhost = servername = log_vh = redirect_code = redirect_url = protocol = ''
+                vhost = servername = log_vh = redirect_code = redirect_url = protocol = vh_ip = ''
                 continue
             #storing virtualhost
             if not servername and not log and log_vh:
@@ -186,7 +186,7 @@ def analyze_conf(conf_file, apache_name, server_id):
             tmpred = ''
             if redirect_code:
                 tmpred = redirect_from + ' -> ' + redirect_to
-            if not insertInTable('virtualhosts', "apache_id, virtualhost, servername, logfile, redirect, ip, protocol", "%s, '%s', '%s', '%s', '%s', '%s', '%s'"%(apache_id, vhost, servername, tmplog, tmpred, servernameip, protocol)):
+            if not insertInTable('virtualhosts', "apache_id, virtualhost, servername, logfile, redirect, real_ip, protocol, virtualhost_ip", "%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s'"%(apache_id, vhost, servername, tmplog, tmpred, servernameip, protocol, vh_ip)):
                 sys.exit(1)
 #            print "vhost='%s', server='%s', root='%s', log='%s', log_vh='%s'"%(vhost, servername, serverroot, log, log_vh)
             row = selectOneInTable('virtualhosts', 'max(id)')
@@ -199,7 +199,7 @@ def analyze_conf(conf_file, apache_name, server_id):
                 if not insertInTable('rewrites', "virtualhost_id, port, protocol, domain, inst_path", "%s, %s, '%s', '%s', '%s'"%(vh_id, rw[1], rw[2], tmpdom, '/'+rw[5])):
                     sys.exit(1)
 
-            vhost = servername = log_vh = redirect_code = redirect_from = redirect_to = servernameip = protocol = ''
+            vhost = servername = log_vh = redirect_code = redirect_from = redirect_to = servernameip = protocol = vh_ip = ''
             rewrites = []
 
     cfile.close()
