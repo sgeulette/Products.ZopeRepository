@@ -13,6 +13,10 @@ def verbose(*messages):
     print '>>', ' '.join(messages)
 def error(*messages):
     print >>sys.stderr, '!!', (' '.join(messages))
+def trace(*messages):
+    if not TRACE: return
+    print 'TRACE:', ' '.join(messages)
+TRACE = False
 
 apaches = (
 #    {'name':'apache2','type':'d', 'path':'./sites-available'},
@@ -85,6 +89,8 @@ def analyze_conf(conf_file, apache_name, server_id):
     if not os.path.isfile(conf_file):
         error("Filename passed is not a file : '%s'"%conf_file)
         return
+#    if not conf_file.endswith('all.communesplone.be.pilot'):
+#        return
     verbose("Working on '%s'"%conf_file)
     if not insertInTable('apaches', "name, conf_file, creationdate, server_id", "'%s', '%s', '%s', %s"%(apache_name, conf_file, now, server_id)):
         sys.exit(1)
@@ -120,6 +126,7 @@ def analyze_conf(conf_file, apache_name, server_id):
         if res:
             servername = res.group(1)
             servernameip = getServernameIP(servername)
+            trace("servername='%s'"%servername)
             continue
 
         #ServerRoot "/usr/local/apache2OCSP"
@@ -153,7 +160,7 @@ def analyze_conf(conf_file, apache_name, server_id):
             res = pat_rw_zope.match(line)
             if res:
                 rewrites.append((res.group(1), res.group(2), res.group(3), res.group(4), res.group(5), res.group(6)))
-#                print "folder='%s', zopeport='%s', protocol='%s', domain='%s', port='%s', path='%s'"%(res.group(1), res.group(2), res.group(3), res.group(4), res.group(5), res.group(6))
+                trace("folder='%s', zopeport='%s', protocol='%s', domain='%s', port='%s', path='%s'"%(res.group(1), res.group(2), res.group(3), res.group(4), res.group(5), res.group(6)))
             else:
                 error("Matching missed in RewriteRule line %d:'%s'"%(lnb,line))
 
@@ -189,7 +196,7 @@ def analyze_conf(conf_file, apache_name, server_id):
             if not insertInTable('virtualhosts', "apache_id, virtualhost, servername, logfile, redirect, real_ip, protocol, virtualhost_ip", "%s, '%s', '%s', '%s', '%s', '%s', '%s', '%s'"%(apache_id, vhost, servername, tmplog, tmpred, servernameip, protocol, vh_ip)):
                 sys.exit(1)
 #            print "vhost='%s', server='%s', root='%s', log='%s', log_vh='%s'"%(vhost, servername, serverroot, log, log_vh)
-            row = selectOneInTable('virtualhosts', 'max(id)')
+            row = selectOneInTable('virtualhosts', 'max(id)', "apache_id = %s and servername = '%s'"%(apache_id, servername))
             vh_id = row[0]
             #storing rewrites
             for rw in rewrites:
