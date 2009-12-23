@@ -22,6 +22,14 @@ TRACE = False
 #dsn="host=localhost port=5432 dbname=zoperepos user=zoperepos password=zopeREP1"
 dsn="host=localhost dbname=zoperepos user=zoperepos password=zopeREP1"
 
+try:
+    #The ZopeRepositoryLocalPassword product can be put in the buildout 'products' subdirectory
+    from Products.ZopeRepositoryLocalPassword.config import *
+    dsn = dsn.replace('zopeREP1', ZOPEREPOSITORYPASSWORD)
+    dsn = dsn.replace('localhost', ZOPEREPOSITORYHOST)
+except (ImportError, NameError):
+    pass
+
 #------------------------------------------------------------------------------
 
 def openConnection():
@@ -31,7 +39,9 @@ def openConnection():
         #param :: dbname user password
         conn=psycopg2.connect(dsn)
     except Exception, message:
-        error("Cannot connect to database %s with dsn '%s'"%(message, dsn))
+        msg = "Cannot connect to database with dsn '%s': %s"%(dsn, message)
+        error(msg)
+        raise Exception(msg)
     return conn
 
 #------------------------------------------------------------------------------

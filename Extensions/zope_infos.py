@@ -23,58 +23,52 @@ def trace(*messages):
     logger.debug('TRACE:'+(' '.join(messages)))
 
 pdir = ''
-dsn="host=localhost dbname=zoperepos user=zoperepos password=zopeREP1"
 TRACE=True
-
-try:
-    #The ZopeRepositoryLocalPassword product can be put in the buildout 'products' subdirectory
-    from Products.ZopeRepositoryLocalPassword.config import *
-    dsn = dsn.replace('zopeREP1', ZOPEREPOSITORYPASSWORD)
-    dsn = dsn.replace('localhost', ZOPEREPOSITORYHOST)
-except (ImportError, NameError):
-    pass
 
 ###############################################################################
 
 def walkInZope(self):
     """ external method called in the zope instance """
-    verbose("I'm in Zope : héhé")
+    try:
+        verbose("I'm in Zope : héhé")
 
-    from Products.CMFCore.utils import getToolByName
-    from Globals import INSTANCE_HOME
+        from Products.CMFCore.utils import getToolByName
+        from Globals import INSTANCE_HOME
 
-    from Products.ZopeRepository.Extensions.utils import check_zope_admin
-    if not check_zope_admin(self):
-        return 'walkInZope run with a non admin user: we go out'
+        from Products.ZopeRepository.Extensions.utils import check_zope_admin
+        if not check_zope_admin(self):
+            return 'walkInZope run with a non admin user: we go out'
 
-    instance = INSTANCE_HOME.rstrip('/')
-    # in a buildout, INSTANCE_HOME = xxx/parts/instance
-    if instance.endswith('/parts/instance'):
-        instance = instance.replace('/parts/instance', '')
-    instance = os.path.basename(instance)
+        instance = INSTANCE_HOME.rstrip('/')
+        # in a buildout, INSTANCE_HOME = xxx/parts/instance
+        if instance.endswith('/parts/instance'):
+            instance = instance.replace('/parts/instance', '')
+        instance = os.path.basename(instance)
 
-    hostname = socket.gethostname()
-    #hostname = '127.0.0.1' # to test if it work with another hostname
-    trace("hostname='%s'"%hostname)
-    row = selectOneInTable('servers', 'id', "server = '%s'"%hostname)
-    server_id = row[0]
+        hostname = socket.gethostname()
+        #hostname = '127.0.0.1' # to test if it work with another hostname
+        trace("hostname='%s'"%hostname)
+        row = selectOneInTable('servers', 'id', "server = '%s'"%hostname)
+        server_id = row[0]
 
-    inst_id = getInstanceId(instance, server_id)
-    if not inst_id:
-        return "Instance '%s' not found in database"%instance
+        inst_id = getInstanceId(instance, server_id)
+        if not inst_id:
+            return "Instance '%s' not found in database"%instance
 
-    deleteTable('plonesites', "instance_id = %s"%inst_id)
+        deleteTable('plonesites', "instance_id = %s"%inst_id)
 
-    for objid in self.objectIds(('Plone Site', 'Folder')):
-        obj = getattr(self, objid)
-        if obj.meta_type == 'Folder':
-            for sobjid in obj.objectIds('Plone Site'):
-                sobj = getattr(obj, sobjid)
-                productsPloneSite(sobj, sobjid, '/' + objid, inst_id)
-        elif obj.meta_type == 'Plone Site':
-            productsPloneSite(obj, objid, '/', inst_id)
-    
-    return 'walkInZope finished'
+        for objid in self.objectIds(('Plone Site', 'Folder')):
+            obj = getattr(self, objid)
+            if obj.meta_type == 'Folder':
+                for sobjid in obj.objectIds('Plone Site'):
+                    sobj = getattr(obj, sobjid)
+                    productsPloneSite(sobj, sobjid, '/' + objid, inst_id)
+            elif obj.meta_type == 'Plone Site':
+                productsPloneSite(obj, objid, '/', inst_id)
+        
+        return 'walkInZope finished'
+    except Exception, message:
+        return message
 
 #------------------------------------------------------------------------------
 
