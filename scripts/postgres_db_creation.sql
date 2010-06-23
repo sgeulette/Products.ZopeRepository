@@ -12,6 +12,10 @@ SET escape_string_warning = off;
 -- Name: zoperepos; Type: DATABASE; Schema: -; Owner: zoperepos
 --
 
+CREATE ROLE zoperepos LOGIN ENCRYPTED PASSWORD 'md5a095aaa07ae998bbf536829d2c517c87'
+  CREATEDB
+   VALID UNTIL 'infinity';
+
 CREATE DATABASE zoperepos WITH TEMPLATE = template0 ENCODING = 'UTF8';
 
 
