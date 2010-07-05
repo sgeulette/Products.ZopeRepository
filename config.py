@@ -80,7 +80,7 @@ JAVASCRIPTS = []
 
 ##code-section config-bottom #fill in your manual code here
 PRODUCT_FOLDER = os.path.dirname(__file__)
-FILES_FOLDER = os.path.join(PRODUCT_FOLDER, 'maintenanceFiles')
+FILES_FOLDER = os.path.join(PRODUCT_FOLDER, 'guiFiles')
 ##/code-section config-bottom
 
 
