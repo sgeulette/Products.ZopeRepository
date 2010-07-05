@@ -42,6 +42,7 @@ except ImportError: # Old CMF
 
 
 ##code-section config-head #fill in your manual code here
+import os
 ##/code-section config-head
 
 
@@ -78,6 +79,8 @@ STYLESHEETS = []
 JAVASCRIPTS = []
 
 ##code-section config-bottom #fill in your manual code here
+PRODUCT_FOLDER = os.path.dirname(__file__)
+FILES_FOLDER = os.path.join(PRODUCT_FOLDER, 'maintenanceFiles')
 ##/code-section config-bottom
 
 
