@@ -1,0 +1,48 @@
+{'title':'',}
+.green {
+color: green;
+}
+.red {
+color: red;
+}
+.red a {
+color: red;
+}
+.red a:visited {
+font-weight: bold;
+}
+.orange {
+color: orange;
+}
+.orange a {
+color: orange;
+}
+.orange a:visited {
+font-weight: bold;
+}
+.table {
+border: 1px solid black;
+border-collapse:collapse;
+}
+.table th {
+border: 1px solid black;
+background: #8297FD;
+}
+.table td {
+border: 1px solid black;
+padding: 2px
+}
+.odd {
+background-color: #EEF3F5;
+}
+h1 {
+text-align:center;
+text-decoration: underline;
+}
+.bold {
+font-weight: bold;
+}
+.server {
+font-weight: bold;
+text-transform: uppercase;
+}

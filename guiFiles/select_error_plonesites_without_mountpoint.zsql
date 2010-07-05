@@ -1,0 +1,6 @@
+{'title':'get plonesites without mountpoints',}
+<params></params>
+select s.server, i.instance, i.port, p.path, p.plonesite 
+from plonesites p, instances i, servers s
+where mountpoint_id is null and p.instance_id = i.id and i.server_id = s.id
+order by plonesite

@@ -1,0 +1,5 @@
+{'title':'get rewrites for a plonesite',}
+<params>port
+inst_path</params>
+select distinct r.protocol, domain, servername, inst_path, port from rewrites r, virtualhosts v
+where port = <dtml-var port> and inst_path like <dtml-sqlvar "inst_path + '%'" type="string"> and virtualhost_id = v.id

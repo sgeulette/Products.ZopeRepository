@@ -1,0 +1,83 @@
+{'title':'List of used instances',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="th_rep python:25">
+    <h1><span tal:replace="template/title">optional template title</span></h1>
+    <h2>Instances</h2>
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th title="buildout svn path displayed when mouse on instance name">Instance (i)</th>
+        <th>Port</th>
+        <th>Zope version</th>
+        <th>Plone version</th>
+        <th>Products</th>
+        <th>Plone sites</th>
+        <th>Mount points</th>
+        <th>Last scan</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_all_instances()">
+         <tr class="" tal:define="evenrow repeat/row/even;
+                                  zopeurl python:context.getZopeUrl(row['server'],row['port']);" 
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/instance" tal:attributes="title row/repository_address"></td>
+          <td><a href="" target="_blank" tal:attributes="href python:zopeurl+'/manage_main'" tal:content="row/port"></a></td>
+          <td tal:content="row/zope_version"></td>
+          <td tal:content="row/plone_version"></td>
+          <td tal:define="cnt python:context.select_instances_products(inst_id=row['id'])">
+           <a href="" target="_blank" tal:attributes="href python:'instance_view?instance='+row['instance']+'&inst_id='+str(row['id'])+'&th_rep='+str(th_rep)+'&server='+str(row['server'])" tal:content="python: len(cnt)"></a></td>
+          <td tal:define="cnt python:context.select_plonesites(inst_id=row['id'])">
+           <a href="" target="_blank" tal:attributes="href python:'plonesite_view?instance='+row['instance']+'&inst_id='+str(row['id'])+'&port='+str(row['port'])+'&th_rep='+str(th_rep)+'&server='+str(row['server'])" tal:content="python: len(cnt)"></a></td>
+          <td tal:define="cnt python:context.select_mountpoints(inst_id=row['id'])">
+           <a href="" target="_blank" tal:attributes="href python:'mountpoint_view?instance='+row['instance']+'&inst_id='+str(row['id'])+'&th_rep='+str(th_rep)+'&server='+str(row['server'])" tal:content="python: len(cnt)"></a></td>
+          <td tal:content="python:DateTime(row['creationdate']).strftime('%d/%m/%Y %H:%M')"></td>
+         </tr>
+       </tal:entry>
+      </tbody>
+    </table>
+    <br />
+    <a href="" tal:attributes="href python:'all_products_view?th_rep='+str(th_rep)">Usage of all products</a>
+    <br /><br />
+    <h2>Apache's configuration</h2>
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th>Given name</th>
+        <th>Configuration files</th>
+        <th>VirtualHosts</th>
+        <th>Rewrites</th>
+        <th>Last scan</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_apaches_names()">
+         <tr class="" tal:define="evenrow repeat/row/even;
+                                  conf python:context.select_apaches_conf_file(name=row['name'],server=row['server']);"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/name"></td>
+          <td tal:content="python: len(conf)">
+           <!-- a href="" tal:attributes="href python:'instance_view?instance='+row['instance']+'&inst_id='+str(row['id'])" tal:content="python: len(cnt)"></a --></td>
+          <td tal:define="cnt python:context.select_virtualhosts(name=row['name'],server=row['server']);">
+           <a href="" tal:attributes="href python:'virtualhosts_view?name='+row['name']+'&server='+row['server']+'&th_rep='+str(th_rep)" tal:content="python: len(cnt)"></a></td>
+          <td tal:define="cnt python:context.select_rewrites(name=row['name'],server=row['server']);">
+           <a href="" tal:attributes="href python:'rewrites_view?name='+row['name']+'&server='+row['server']+'&th_rep='+str(th_rep)" tal:content="python: len(cnt)"></a></td>
+          <td tal:content="python:DateTime(row['creationdate']).strftime('%d/%m/%Y %H:%M')"></td>
+         </tr>
+       </tal:entry>
+      </tbody>
+    </table>
+    <br />
+    <a href="" tal:attributes="href python:'all_domains_view?th_rep='+str(th_rep)">List of all domains</a>
+    <br />
+    <a href="" tal:attributes="href python:'apache_errors_view?th_rep='+str(th_rep)">Errors in apache config</a>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+{'title':'get all domain names',}
+<params></params>
+select v.id, s.server, v.protocol, v.servername, v.real_ip, v.virtualhost_ip, a.conf_file, v.redirect from virtualhosts v, apaches a, servers s
+where a.id = v.apache_id and s.id = a.server_id and v.servername != ''
+order by v.servername

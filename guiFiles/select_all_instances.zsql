@@ -1,0 +1,3 @@
+{'title':'get all instances',}
+<params></params>
+select instances.*, server from instances, servers where instances.server_id = servers.id order by server, instance

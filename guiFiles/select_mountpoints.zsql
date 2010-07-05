@@ -1,0 +1,3 @@
+{'title':'get mountpoints of an instance',}
+<params>inst_id</params>
+select name, path, fs, size, id from mountpoints where instance_id = <dtml-var inst_id> order by path

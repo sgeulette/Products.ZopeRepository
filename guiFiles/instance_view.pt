@@ -1,0 +1,65 @@
+{'title':'Products used in this zope instance',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="instance python: context.REQUEST.get('instance', None);
+                    inst_id python: context.REQUEST.get('inst_id', None);
+                    th_rep python: context.REQUEST.get('th_rep', 30);
+                    server python: context.REQUEST.get('server', None);">
+
+    <h1><span class="server" tal:content="server"></span> : Products used in '<span tal:content="instance"></span>'</h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Product</th>
+        <th>Local version (xml|txt)</th>
+        <th>Repository version</th>
+        <th>Local revision</th>
+        <th>Repository revision</th>
+        <th>Changes</th>
+        <th>Diff lines</th>
+        <th>Repository address</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_instances_products(inst_id=inst_id)">
+         <tr class="" tal:define="evenrow repeat/row/even;
+                                  decorations python:context.decorateInstanceView(row['local_version'],row['repository_version'],row['local_revision'],row['repository_revision'],row['svn_diff'],row['repository_address']);"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/product"></td>
+          <td tal:content="row/local_version"></td>
+          <td class="" tal:attributes="class decorations/ver_cl" tal:content="row/repository_version"></td>
+          <td tal:content="row/local_revision"></td>
+          <td class="" tal:attributes="class decorations/rev_cl" tal:content="python: row['repository_revision'] or (row['repository_address'] and 'Repository error')"></td>
+          <td class="" tal:attributes="class decorations/diff_cl">
+            <a tal:condition="decorations/diff_href" href="" tal:attributes="href decorations/diff_href" tal:content="row/svn_diff"></a>
+            <span tal:condition="not:decorations/diff_href" tal:replace="row/svn_diff"></span>
+          </td>
+          <td tal:content="row/svn_diff_lines"></td>
+          <td><a href="" tal:attributes="href row/repository_address" tal:content="row/repository_address"></a></td>
+         </tr>
+       <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+        <tr>
+         <th>Product</th>
+         <th>Local version</th>
+         <th>Repository version</th>
+         <th>Local revision</th>
+         <th>Repository revision</th>
+         <th>Changes</th>
+         <th>Diff lines</th>
+         <th>Repository address</th>
+        </tr>
+       </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+    <br />
+    <span class="bold">Repository version</span> in <span class="red">red</span> => The <span class="bold">version.txt</span> is different on the svn repository<br />
+    <span class="bold">Repository revision</span> in <span class="red">red</span> => The <span class="bold">revision</span> is different on the svn repository and the product has <span class="bold">changes</span><br />
+    <span class="bold">Repository revision</span> in <span class="green">green</span> => The <span class="bold">revision</span> is different on the svn repository but there are <span class="bold">no changes</span>. "svn up" can be done without impact.<br />
+    <span class="bold">Changes </span><span class="red">'Yes'</span> with a link => A trac can display the changes between the local revision and the repository revision. Cool!<br />
+  </body>
+</html>

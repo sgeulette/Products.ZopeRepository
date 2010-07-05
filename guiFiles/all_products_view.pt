@@ -1,0 +1,48 @@
+{'title':'Usage of all products in all instances',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="products python:context.select_all_products();
+                    instances python:context.select_all_instances();
+                    th_rep python: context.REQUEST.get('th_rep', 30);">
+
+    <h1>Usage of all products in instances</h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Product</th>
+       <tal:header tal:repeat="instance instances">
+        <th tal:content="structure python:'%s<br />%s'%(instance['server'],instance['instance'])"></th>
+       </tal:header>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:row tal:repeat="product products">
+         <tr class="" tal:define="evenrow repeat/product/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="product/product"></td>
+         <tal:col tal:repeat="instance instances">
+         <tal:colbis tal:define="res python:context.select_inst_local_version(inst_id=instance['id'],product_id=product['id'])">
+          <td tal:condition="res" tal:content="python: res[0][0]"></td>
+          <td tal:condition="not:res" tal:content="python: '# # # # #'"></td>
+         </tal:colbis> 
+         </tal:col>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/product/number">
+          <tr>
+           <th>Product</th>
+           <tal:header2 tal:repeat="instance instances">
+           <th tal:content="instance/instance"></th>
+           </tal:header2>
+          </tr>
+         </tal:header>
+       </tal:row>
+      </tbody>
+    </table>
+    <br />
+    <span class="bold"># # # # #</span> => The product is not present in the instance<br />
+  </body>
+</html>

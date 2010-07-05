@@ -1,0 +1,5 @@
+{'title':'get products of a plone site',}
+<params>plonesite_id</params>
+select p.product, pp.status, pp.installed_version, pp.errors, pp.product_id 
+from plonesites_products pp, products p where pp.plonesite_id = <dtml-var plonesite_id> and pp.product_id = p.id 
+order by p.product

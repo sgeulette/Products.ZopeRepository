@@ -1,0 +1,5 @@
+{'title':'get useless virtualhosts',}
+<params></params>
+select s.server, a.conf_file, v.servername, v.virtualhost_ip, v.real_ip, v.redirect from virtualhosts v, apaches a, servers s
+where a.id = v.apache_id and s.id = a.server_id and v.servername != '' and v.real_ip != v.virtualhost_ip
+order by s.server, v.servername

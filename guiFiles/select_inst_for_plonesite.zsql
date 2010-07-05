@@ -1,0 +1,3 @@
+{'title':'get the instance containing a plone site',}
+<params>ps_id</params>
+select instance_id from plonesites where id = <dtml-var ps_id>

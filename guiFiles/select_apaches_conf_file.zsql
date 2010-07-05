@@ -1,0 +1,5 @@
+{'title':'get conf_file of an apache',}
+<params>name
+server</params>
+select a.* from apaches a, servers s
+where a.name = <dtml-sqlvar name type=string> and s.server = <dtml-sqlvar server type=string> and a.server_id = s.id

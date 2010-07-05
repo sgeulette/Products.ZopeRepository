@@ -1,0 +1,4 @@
+{'title':'get the plonesites of a mountpoint',}
+<params>inst_id
+mp_id</params>
+select plonesite from plonesites where instance_id = <dtml-var inst_id> and mountpoint_id = <dtml-var mp_id> order by plonesite

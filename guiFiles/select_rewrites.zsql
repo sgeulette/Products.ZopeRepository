@@ -1,0 +1,6 @@
+{'title':'get rewrite rules',}
+<params>name
+server</params>
+select r.*, v.servername from apaches a, virtualhosts v, rewrites r, servers s
+where a.name = <dtml-sqlvar name type=string> and s.server = <dtml-sqlvar server type=string> and s.id = a.server_id and a.id = v.apache_id and v.id = r.virtualhost_id
+order by servername, domain

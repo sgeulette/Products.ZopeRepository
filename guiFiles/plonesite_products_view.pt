@@ -1,0 +1,44 @@
+{'title':'Products installed in the plone site',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="plonesite python: context.REQUEST.get('plonesite', None);
+                    ps_id python: context.REQUEST.get('ps_id', None);
+                    server python: context.REQUEST.get('server', None);">
+
+    <h1><span class="server" tal:content="server"></span> : Products installed in '<span tal:content="plonesite"></span>'</h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Product</th>
+        <th>Status</th>
+        <th>Zope version</th>
+        <th>Installed version</th>
+        <th>Errors</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_plonesites_products(plonesite_id=ps_id)">
+         <tr class="" tal:define="evenrow repeat/row/even;
+                                  inst_id python:context.select_inst_for_plonesite(ps_id=ps_id)[0][0];
+                                  res python:context.select_inst_local_version(inst_id=inst_id, product_id=row['product_id']);
+                                  inst_local_version python:res[0][0];
+                                  decorations python:context.decoratePlonesiteProductView(row['installed_version'],inst_local_version);
+                                  iv_tested python: row['installed_version'] and row['installed_version'] or '# # # # # # #'"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/product"></td>
+          <td tal:content="row/status"></td>
+          <td tal:content="python:inst_local_version"></td>
+          <td class="" tal:attributes="class decorations/ver_cl" tal:content="iv_tested"></td>
+          <td tal:content="row/errors"></td>
+         </tr>
+       </tal:entry>
+      </tbody>
+    </table>
+    <br />
+    <span class="bold"># # # # # # #</span> => The product is not installed in the instance ?<br />
+  </body>
+</html>

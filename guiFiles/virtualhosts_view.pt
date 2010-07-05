@@ -1,0 +1,55 @@
+{'title':'VirtualHosts of an apache',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="name python: context.REQUEST.get('name', None);
+                    th_rep python: context.REQUEST.get('th_rep', 30);
+                    server python: context.REQUEST.get('server', None);">
+
+    <h1><span class="server" tal:content="server"></span> : VirtualHosts of the apache labelled : <span tal:content="name"></span></h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>VirtualHost</th>
+        <th>Servername</th>
+        <th>Rewrites</th>
+        <th>Redirect</th>
+        <th>IP</th>
+        <th>Conf file</th>
+        <th>Log file</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_virtualhosts(name=name, server=server)">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/virtualhost"></td>
+          <td tal:content="row/servername"></td>
+          <td tal:define="cnt python:context.select_virtualhost_rewrites(vh_id=row['id']);">
+           <a tal:condition="cnt" href="" tal:attributes="href python:'virtualhost_rewrite_view?name='+name+'&vh_id='+str(row['id'])+'&servername='+row['servername']" tal:content="python: len(cnt)"></a>
+           <span tal:condition="not:cnt" tal:content="python: len(cnt)" />
+          </td>
+          <td tal:content="row/redirect"></td>
+          <td tal:content="row/real_ip"></td>
+          <td tal:content="row/conf_file"></td>
+          <td tal:content="row/logfile"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+           <th>VirtualHost</th>
+           <th>Servername</th>
+           <th>Rewrites</th>
+           <th>Redirect</th>
+           <th>IP</th>
+           <th>Conf file</th>
+           <th>Log file</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+  </body>
+</html>

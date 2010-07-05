@@ -1,0 +1,3 @@
+{'title':'get plonesites of an instance',}
+<params>inst_id</params>
+select * from plonesites where instance_id = <dtml-var inst_id> order by plonesite

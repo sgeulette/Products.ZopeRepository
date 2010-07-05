@@ -1,0 +1,37 @@
+{'title':'Rewrite rules used on this plonesite',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="plonesite python: context.REQUEST.get('plonesite', None);
+                    instance python: context.REQUEST.get('instance', None);
+                    port python: context.REQUEST.get('port', None);
+                    path python: context.REQUEST.get('path', None);
+                    server python: context.REQUEST.get('server', None);">
+
+    <h1><span class="server" tal:content="server"></span> : Rewrite rules in '<span tal:content="instance" />' for site '<span tal:content="plonesite" />' on port <span tal:content="port" /></h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Servername</th>
+        <th>Protocol</th>
+        <th>Domain</th>
+        <th>Instance path</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_plonesite_rewrites(port=port, inst_path=path+'/'+plonesite)">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/servername"></td>
+          <td tal:content="row/protocol"></td>
+          <td tal:content="row/domain"></td>
+          <td tal:content="row/inst_path"></td>
+         </tr>
+       </tal:entry>
+      </tbody>
+    </table>
+  </body>
+</html>

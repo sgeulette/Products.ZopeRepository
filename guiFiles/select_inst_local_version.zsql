@@ -1,0 +1,5 @@
+{'title':'get local version for an instance and a product',}
+<params>inst_id
+product_id</params>
+select local_version, local_revision from instances_products
+where product_id = <dtml-var product_id> and instance_id = <dtml-var inst_id>

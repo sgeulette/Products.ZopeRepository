@@ -1,0 +1,3 @@
+{'title':'get rewrites for a virtualhost',}
+<params>vh_id</params>
+select * from rewrites where virtualhost_id = <dtml-var vh_id>

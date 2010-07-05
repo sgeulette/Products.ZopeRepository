@@ -1,0 +1,6 @@
+{'title':'get virtualhosts for an apache name',}
+<params>name
+server</params>
+select v.*, a.conf_file from virtualhosts v, apaches a, servers s 
+where a.name = <dtml-sqlvar name type=string> and s.server = <dtml-sqlvar server type=string> and a.id = v.apache_id and s.id = a.server_id
+order by v.apache_id, v.servername

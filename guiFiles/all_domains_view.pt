@@ -1,0 +1,54 @@
+{'title':'All domains found',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="th_rep python: context.REQUEST.get('th_rep', 30);">
+
+    <h1>All domains</h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Protocol</th>
+        <th>Servername</th>
+        <th>Server</th>
+        <th>IP <span class="green">real</span></th>
+        <th>Redirect</th>
+        <th>Rewrites</th>
+        <th>Conf file</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_all_domains()">
+         <tr class="" tal:define="evenrow repeat/row/even;
+                                  is_good_ip python:row['real_ip']==row['virtualhost_ip'] and True or False;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/protocol"></td>
+          <td tal:condition="is_good_ip"><a target="_blank" tal:content="row/servername" tal:attributes="href python:row['protocol']+'://'+row['servername'];"/></td>
+          <td tal:condition="not:is_good_ip" tal:content="row/servername"></td>
+          <td tal:content="row/server"></td>
+          <td tal:content="row/virtualhost_ip" tal:attributes="class python:test(is_good_ip,'green', 'red')"></td>
+          <td tal:content="row/redirect"></td>
+          <tal:rewrites define="rewrites python:context.select_virtualhost_rewrites(vh_id=row['id']);">
+          <td tal:content="structure python:context.getVirtualhostRewritesLines(row['server'], rewrites)"></td>
+          </tal:rewrites>
+          <td tal:content="row/conf_file"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+           <th>Protocol</th>
+           <th>Servername</th>
+           <th>Server</th>
+           <th>IP</th>
+           <th>Redirect</th>
+           <th>Rewrites</th>
+           <th>Conf file</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+  </body>
+</html>

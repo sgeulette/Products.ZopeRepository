@@ -1,0 +1,3 @@
+{'title':'get all products',}
+<params></params>
+select * from products order by product

@@ -1,0 +1,4 @@
+{'title':'get products of an instance',}
+<params>inst_id</params>
+select p.id, p.product, ip.local_version, ip.repository_version, ip.local_revision, ip.repository_revision, ip.svn_diff, ip.svn_diff_lines, ip.repository_address 
+from instances_products ip, products p where ip.instance_id = <dtml-var inst_id> and ip.product_id = p.id order by p.product

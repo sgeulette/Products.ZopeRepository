@@ -1,0 +1,35 @@
+{'title':'',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="name python: context.REQUEST.get('name', None);
+                    servername python: context.REQUEST.get('servername', None);
+                    vh_id python: context.REQUEST.get('vh_id', None);">
+
+    <h1>Rewrite rules in '<span tal:content="name" />' for servername = '<span tal:content="servername" />'</h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Protocol</th>
+        <th>Domain</th>
+        <th>Path</th>
+        <th>Port</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_virtualhost_rewrites(vh_id=vh_id)">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td><a name="" tal:attributes="name row/virtualhost_id" tal:content="row/protocol"></a></td>
+          <td tal:content="row/domain"></td>
+          <td tal:content="row/inst_path"></td>
+          <td tal:content="row/port"></td>
+         </tr>
+       </tal:entry>
+      </tbody>
+    </table>
+  </body>
+</html>

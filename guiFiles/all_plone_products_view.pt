@@ -1,0 +1,50 @@
+{'title':'Usage of all products in plone instances',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="inst_id python: context.REQUEST.get('inst_id', None);
+                    products python:context.select_instances_products(inst_id=inst_id);
+                    instances python:context.select_plonesites(inst_id=inst_id);
+                    th_rep python: context.REQUEST.get('th_rep', 30);
+                    server python: context.REQUEST.get('server', None);">
+
+    <h1><span class="server" tal:content="server"></span> : Usage of all products in plone instances</h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Product</th>
+       <tal:header tal:repeat="instance instances">
+        <th tal:content="instance/plonesite"></th>
+       </tal:header>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:row tal:repeat="product products">
+         <tr class="" tal:define="evenrow repeat/product/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="product/product"></td>
+         <tal:col tal:repeat="instance instances">
+         <tal:colbis tal:define="res python:context.select_plonesite_product_installed_version(plonesite_id=instance['id'],product_id=product['id'])">
+          <td tal:condition="res" tal:content="python: res[0][0]"></td>
+          <td tal:condition="not:res" tal:content="python: '# # # #'"></td>
+         </tal:colbis> 
+         </tal:col>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/product/number">
+          <tr>
+          <th>Product</th>
+          <tal:header2 tal:repeat="instance instances">
+           <th tal:content="instance/plonesite"></th>
+          </tal:header2>
+          </tr>
+         </tal:header>
+       </tal:row>
+      </tbody>
+    </table>
+    <br />
+    <span class="bold"># # # #</span> => The product is not present in the plone instance<br />
+  </body>
+</html>

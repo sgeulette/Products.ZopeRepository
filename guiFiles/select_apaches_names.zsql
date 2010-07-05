@@ -1,0 +1,3 @@
+{'title':'get name of apaches',}
+<params></params>
+select distinct a.name , s.server, (select min(creationdate) from apaches where name = a.name and server_id = a.server_id) as creationdate from apaches a, servers s where a.server_id = s.id order by server, name

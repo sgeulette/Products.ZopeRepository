@@ -1,0 +1,86 @@
+{'title':'Errors in Apache',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="th_rep python: context.REQUEST.get('th_rep', 30);">
+
+    <h1>Errors in apache config</h1>
+
+    <h2>Useless virtualhost definition: virtualhost IP != real IP (<span class="red">external IP</span>)</h2>
+
+    <table class="table" tal:define="good_ips python:('62.58.108.100','62.58.108.101','62.58.108.182','62.58.108.183','85.118.46.96','85.118.46.97',)">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th>Conf file</th>
+        <th>Servername</th>
+        <th>VirtualHost IP</th>
+        <th>Real IP</th>
+        <th>Redirect</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_error_useless_virtualhosts()">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/conf_file"></td>
+          <td tal:content="row/servername"></td>
+          <td tal:content="row/virtualhost_ip"></td>
+          <td tal:content="row/real_ip" tal:attributes="class python:test(row['real_ip'] not in good_ips, 'red')"></td>
+          <td tal:content="row/redirect"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+           <th>Server</th>
+           <th>Conf file</th>
+           <th>Servername</th>
+           <th>VirtualHost IP</th>
+           <th>Real IP</th>
+           <th>Redirect</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+
+    <h2>Plone sites without mountpoint</h2>
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th>Instance</th>
+        <th>Port</th>
+        <th>Path</th>
+        <th>PloneSite</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_error_plonesites_without_mountpoint()">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/instance"></td>
+          <td tal:content="row/port"></td>
+          <td tal:content="row/path"></td>
+          <td tal:content="row/plonesite"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+           <th>Server</th>
+           <th>Instance</th>
+           <th>Port</th>
+           <th>Path</th>
+           <th>PloneSite</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+
+    <h2>Mountpoints without rewrites</h2>
+
+  </body>
+</html>

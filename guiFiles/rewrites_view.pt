@@ -1,0 +1,43 @@
+{'title':'Rewrite rules used in this apache',}
+<html>
+  <head>
+    <title tal:content="template/title">The title</title>
+    <link href="products_version.css" type="text/css" rel="stylesheet">
+  </head>
+  <body tal:define="name python: context.REQUEST.get('name', None);
+                    th_rep python: context.REQUEST.get('th_rep', 30);
+                    server python: context.REQUEST.get('server', None);">
+
+    <h1><span class="server" tal:content="server"></span> : Rewrite rules of the apache labelled : <span tal:content="name"></span></h1>
+
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Protocol</th>
+        <th>Servername</th>
+        <th>Path</th>
+        <th>Port</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_rewrites()">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td><a name="" tal:attributes="name row/virtualhost_id" tal:content="row/protocol"></a></td>
+          <td tal:content="row/servername"></td>
+          <td tal:content="row/inst_path"></td>
+          <td tal:content="row/port"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+           <th>Protocol</th>
+           <th>Servername</th>
+           <th>Path</th>
+           <th>Port</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+  </body>
+</html>
