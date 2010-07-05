@@ -1,0 +1,11 @@
+{'title':'get rewrites without mountpoints',}
+<params></params>
+select distinct srv.server, rew.* from rewrites rew, virtualhosts vh, apaches ap, servers srv 
+where 
+   --join 
+   rew.virtualhost_id = vh.id and
+   vh.apache_id = ap. id and 
+   ap.server_id = srv.id and
+   --not mountpoints present
+   rew.port not in (select inst.port from mountpoints mp left join instances inst on mp.instance_id = inst.id where inst.server_id = srv.id) 
+order by srv.server, rew.port 

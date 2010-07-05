@@ -81,6 +81,170 @@
     </table>
 
     <h2>Mountpoints without rewrites</h2>
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th>Port</th> 
+        <th>Mountpoint</th>
+        <th>Instance_id</th>
+        <th>Name</th>
+        <th>Path</th>
+        <th>Fs</th>
+        <th>Size</th>
+        <th>Fspath</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_error_MountpointsWithoutRewrites()">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/port"></td>
+          <td tal:content="row/id"></td>
+          <td tal:content="row/instance_id"></td>
+          <td tal:content="row/name"></td>
+          <td tal:content="row/path"></td>
+          <td tal:content="row/fs"></td>
+          <td tal:content="row/size"></td>
+          <td tal:content="row/fspath"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+            <th>Server</th>
+            <th>Port</th> 
+            <th>Mountpoint</th>
+            <th>Instance_id</th>
+            <th>Name</th>
+            <th>Path</th>
+            <th>Fs</th>
+            <th>Size</th>
+            <th>Fspath</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+
+    <h2>Rewrites without mountpoints</h2>
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th>Rewrites</th>
+        <th>Virtualhost</th>
+        <th>Port</th>
+        <th>Protocol</th>
+        <th>Domain</th>
+        <th>Inst_path</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_error_rewritesWithoutMountpoints()">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/id"></td>
+          <td tal:content="row/virtualhost_id"></td>
+          <td tal:content="row/port"></td>
+          <td tal:content="row/protocol"></td>
+          <td tal:content="row/domain"></td>
+          <td tal:content="row/inst_path"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+            <th>Server</th>
+            <th>Rewrites</th>
+            <th>Virtualhost</th>
+            <th>Port</th>
+            <th>Protocol</th>
+            <th>Domain</th>
+            <th>Inst_path</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+
+    <h2>Port use in Rewrites but not exist in instance</h2>
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th>Rewrites</th>
+        <th>Virtualhost</th>
+        <th>Port</th>
+        <th>Protocol</th>
+        <th>Domain</th>
+        <th>Inst_path</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_error_rewritesPortWithoutInstance()">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/id"></td>
+          <td tal:content="row/virtualhost_id"></td>
+          <td tal:content="row/port"></td>
+          <td tal:content="row/protocol"></td>
+          <td tal:content="row/domain"></td>
+          <td tal:content="row/inst_path"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+            <th>Server</th>
+            <th>Rewrites</th>
+            <th>Virtualhost</th>
+            <th>Port</th>
+            <th>Protocol</th>
+            <th>Domain</th>
+            <th>Inst_path</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+
+    <h2>Path use in Rewrites but not exist in instance</h2>
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th>Rewrites</th>
+        <th>Virtualhost</th>
+        <th>Port</th>
+        <th>Protocol</th>
+        <th>Domain</th>
+        <th>Inst_path</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_error_rewritesPathWithoutPloneSite()">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/id"></td>
+          <td tal:content="row/virtualhost_id"></td>
+          <td tal:content="row/port"></td>
+          <td tal:content="row/protocol"></td>
+          <td tal:content="row/domain"></td>
+          <td tal:content="row/inst_path"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+            <th>Server</th>
+            <th>Rewrites</th>
+            <th>Virtualhost</th>
+            <th>Port</th>
+            <th>Protocol</th>
+            <th>Domain</th>
+            <th>Inst_path</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
 
   </body>
 </html>

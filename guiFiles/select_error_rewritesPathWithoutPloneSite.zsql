@@ -1,0 +1,13 @@
+{'title':"get rewrites's path without instance",}
+<params></params>
+select distinct srv.server,rew.* from rewrites rew, virtualhosts vh, apaches ap, servers srv 
+where
+   --join 
+   rew.virtualhost_id = vh.id and
+   vh.apache_id = ap. id and 
+   ap.server_id = srv.id and
+   --not present in plonesite for this instance
+   rew.inst_path not in (select distinct (path || '/' || plonesite) as inst_path 
+                         from plonesites ps, instances inst 
+                         where ps.instance_id = inst.id and inst.server_id = srv.id)
+order by srv.server, rew.port  
