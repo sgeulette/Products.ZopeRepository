@@ -86,6 +86,7 @@ def main():
         deleteTable('plonesites')
         deleteTable('plonesites_products')
         deleteTable('mountpoints')
+        deleteTable('fsfiles')
 
     #hostname = '127.0.0.1' # to test if it work with another hostname
     #Creation or update of the server information
@@ -191,6 +192,22 @@ def main():
 
     if temp_added:
         shutil.rmtree(tempdir)
+        
+    # Getting all fs file   
+    verbose('threat fsfiles in', fspath)
+    folderLst = os.listdir(fspath) 
+    for fileInFolder in folderLst:
+        completeFsFileName = fspath + fileInFolder
+        if not os.path.isfile(completeFsFileName):
+            continue
+        fsSize = os.path.getsize(completeFsFileName)/1048576
+        (fileName, fileExt) = os.path.splitext(fileInFolder)
+        if fileExt == '.fs':            
+            if not getFsFilesId(inst_id,fileName):
+                #inserting new row
+                if not insertInTable('fsfiles', "instance_id, fs, path, size", "%s, '%s', '%s', %s"%(inst_id, fileInFolder,completeFsFileName,fsSize)):
+                    sys.exit(1)   
+             
 
     #copying extensions script
     #NO MORE NEEDED : the script is present in ZopeRepository products
@@ -547,6 +564,14 @@ def getInstanceId(instance, server_id):
 
 def getInstancesProductsId(inst_id, product_id):
     row = selectOneInTable('instances_products', 'id', "instance_id = %s and product_id = %s"%(inst_id, product_id))
+    if row:
+        return row[0]
+    return 0
+
+#------------------------------------------------------------------------------
+
+def getFsFilesId(inst_id, fs):
+    row = selectOneInTable('fsfiles', 'id', "instance_id = %s and fs = '%s'"%(inst_id, fs))
     if row:
         return row[0]
     return 0
