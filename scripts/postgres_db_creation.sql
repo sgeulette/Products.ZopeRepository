@@ -339,6 +339,37 @@ ALTER TABLE public.virtualhosts OWNER TO zoperepos;
 -- Name: id; Type: DEFAULT; Schema: public; Owner: zoperepos
 --
 
+--
+-- Name: fsfiles_id_seq; Type: SEQUENCE; Schema: public; Owner: zoperepos
+--
+CREATE SEQUENCE fsfiles_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.fsfiles_id_seq OWNER TO zoperepos;
+
+--
+-- Name: fsfiles; Type: TABLE; Schema: public; Owner: zoperepos; Tablespace: 
+--
+
+CREATE TABLE fsfiles (
+    id integer DEFAULT nextval('fsfiles_id_seq'::regclass) NOT NULL,
+    fs character varying(50),
+    path character varying(100),
+    instance_id integer,
+    size integer
+);
+
+
+ALTER TABLE public.fsfiles OWNER TO zoperepos;
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: zoperepos
+--
+
 ALTER TABLE servers ALTER COLUMN id SET DEFAULT nextval('servers_id_seq'::regclass);
 
 
@@ -421,6 +452,8 @@ ALTER TABLE ONLY servers
 ALTER TABLE ONLY virtualhosts
     ADD CONSTRAINT virtualhost_pk PRIMARY KEY (id);
 
+ALTER TABLE ONLY fsfiles
+    ADD CONSTRAINT fsfile_pk PRIMARY KEY (id); 
 
 --
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
