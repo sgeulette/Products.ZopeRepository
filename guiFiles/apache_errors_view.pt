@@ -80,6 +80,40 @@
       </tbody>
     </table>
 
+    <h2>fs files without mountpoint</h2>
+    <table class="table">
+      <thead>
+       <tr>
+        <th>Server</th>
+        <th>Instance</th>
+        <th>Fs</th>
+        <th>Path</th>
+        <th>Size</th>
+       </tr>
+      </thead>
+      <tbody>
+       <tal:entry tal:repeat="row python:context.select_error_fsFilesWithoutMountpoint()">
+         <tr class="" tal:define="evenrow repeat/row/even;"
+                      tal:attributes="class python:test(evenrow, 'even', 'odd')">
+          <td tal:content="row/server"></td>
+          <td tal:content="row/instance"></td>
+          <td tal:content="row/fs"></td>
+          <td tal:content="row/path"></td>
+          <td tal:content="row/size"></td>
+         </tr>
+         <tal:header condition="python:not rownb%int(th_rep)" define="rownb repeat/row/number">
+          <tr>
+           <th>Server</th>
+           <th>Instance</th>
+           <th>Fs</th>
+           <th>Path</th>
+           <th>Size</th>
+          </tr>
+         </tal:header>
+       </tal:entry>
+      </tbody>
+    </table>
+
     <h2>Mountpoints without rewrites</h2>
     <table class="table">
       <thead>

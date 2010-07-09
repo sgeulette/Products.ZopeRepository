@@ -1,0 +1,8 @@
+{'title':'get fs files without mountpoints',}
+<params></params>
+select srv.server, inst.instance, ff.* from fsfiles ff 
+left join mountpoints mp on ff.path = mp.fspath and ff.instance_id = mp.instance_id
+left join instances inst on ff.instance_id = inst.id
+left join servers srv on inst.server_id = srv.id
+where mp.id is null
+order by srv.server, ff.path
