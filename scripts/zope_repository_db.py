@@ -203,7 +203,7 @@ def main():
         fsSize = os.path.getsize(completeFsFileName)/1048576
         (fileName, fileExt) = os.path.splitext(fileInFolder)
         if fileExt == '.fs':            
-            if not getFsFilesId(inst_id,fileName):
+            if not getFsFilesId(inst_id,fileInFolder):
                 #inserting new row
                 if not insertInTable('fsfiles', "instance_id, fs, path, size", "%s, '%s', '%s', %s"%(inst_id, fileInFolder,completeFsFileName,fsSize)):
                     sys.exit(1)   
