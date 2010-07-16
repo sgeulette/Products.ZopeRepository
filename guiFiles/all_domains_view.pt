@@ -14,6 +14,7 @@
         <th>Protocol</th>
         <th>Servername</th>
         <th>Server</th>
+        <th>Instance</th>
         <th>IP <span class="green">real</span></th>
         <th>Redirect</th>
         <th>Rewrites</th>
@@ -29,6 +30,7 @@
           <td tal:condition="is_good_ip"><a target="_blank" tal:content="row/servername" tal:attributes="href python:row['protocol']+'://'+row['servername'];"/></td>
           <td tal:condition="not:is_good_ip" tal:content="row/servername"></td>
           <td tal:content="row/server"></td>
+          <td tal:content="row/instance"></td>
           <td tal:content="row/virtualhost_ip" tal:attributes="class python:test(is_good_ip,'green', 'red')"></td>
           <td tal:content="row/redirect"></td>
           <tal:rewrites define="rewrites python:context.select_virtualhost_rewrites(vh_id=row['id']);">
@@ -41,6 +43,7 @@
            <th>Protocol</th>
            <th>Servername</th>
            <th>Server</th>
+           <th>Instance</th>
            <th>IP</th>
            <th>Redirect</th>
            <th>Rewrites</th>
@@ -52,3 +55,4 @@
     </table>
   </body>
 </html>
+

@@ -1,5 +1,10 @@
 {'title':'get all domain names',}
 <params></params>
-select v.id, s.server, v.protocol, v.servername, v.real_ip, v.virtualhost_ip, a.conf_file, v.redirect from virtualhosts v, apaches a, servers s
-where a.id = v.apache_id and s.id = a.server_id and v.servername != ''
+select distinct v.id, s.server, v.protocol, v.servername, inst.instance, v.real_ip, v.virtualhost_ip, a.conf_file, v.redirect 
+from virtualhosts v
+left join apaches a on a.id = v.apache_id
+left join servers s on s.id = a.server_id
+left join rewrites rew on v.id = rew.virtualhost_id
+left join instances inst on s.id = inst.server_id and rew.port = inst.port
+where v.servername != '' 
 order by v.servername
