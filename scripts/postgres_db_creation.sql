@@ -123,7 +123,8 @@ CREATE TABLE instances_products (
     repository_revision integer,
     svn_diff character varying(5),
     svn_diff_lines integer,
-    repository_address character varying(250)
+    repository_address character varying(250),
+    is_egg character varying(5)
 );
 
 
