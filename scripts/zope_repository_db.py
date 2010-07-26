@@ -10,6 +10,8 @@ import urllib
 from datetime import datetime, timedelta
 import socket
 from postgres_utilities import *
+import ConfigParser as cfgparser
+from setuptools.command.easy_install import *
 
 def verbose(*messages):
     print '>>', ' '.join(messages)
@@ -64,7 +66,6 @@ def main():
         fspath = os.path.join(instdir, 'var/')
         inst_type = 'manual'
         productsdir = os.path.join(instdir, 'Products')
-
     instance = os.path.basename(instdir)
     if not tempdir:
         tempdir = os.path.join(instdir, 'temp')
@@ -122,8 +123,9 @@ def main():
     # Getting some informations in zope.conf file (port, mount points)
     port = treat_zopeconflines(zodbfilename, fspath, inst_id)
 
-    # Getting products in a list
-    readProductsDir(productsdir, pfolders)
+    # Getting products and eggs in a list
+    eggsFind = []
+    readProductsDir(productsdir, pfolders, eggsFind)
 
 #    input('Press a key to continue')
 #    return
@@ -131,10 +133,12 @@ def main():
         %('Product', 'Local version', 'Rep version', 'Local rev', 'Rep rev', 'Diff flag', 'Rep url', 'Diff lines', 'Diff count'))
 
     fkeys = pfolders.keys()
+   
+ 
     fkeys.sort()
     for product in fkeys:
 #        if product != 'BelgianEidAuthPlugin':
-#            continue
+#            continue        
         local_version = None
         local_rev = None
         rep_url = None
@@ -143,7 +147,6 @@ def main():
         diff_flag = None
         diff_lines = []
         diff_count = 0
-
         trace("Current product %s"%product)
         os.chdir(pfolders[product])
 
@@ -174,16 +177,29 @@ def main():
 #                    verbose('output=%s'%"".join(diff_out))
                 else:
                     diff_flag = 'No'
-
-        trace("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
-            %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count))
+        else:
+            #check if it's an egg and get informations           
+            #egg_cmd = os.path.join(instdir, 'bin/') + "easy_install --dry-run " + product 
+            egg_cmd = os.path.join(instdir, 'bin/') + "easy_install -f http://download.zope.org/ppix/,http://download.zope.org/distribution/,http://effbot.org/downloads,http://dist.plone.org --dry-run " + product 
+            verbose(egg_cmd)
+            (egg_out, egg_err) = runCommand(egg_cmd)
+            if egg_out:
+                for eggout in egg_out:
+                    if (eggout.find("Best match: " + product) != -1) and (eggout != 'Best match: None'):
+                        rep_version = eggout.strip(" ").split(" ")[3]
+                        break
+                
+        #check if it's an egg 
+        is_egg = isAnEgg(product,eggsFind)
+        trace("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
+            %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count,is_egg))
         diff_lines_to_print = diff_lines
         if diff_lines_to_print:
             diff_lines_to_print = 'too long'
-        verbose("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
-            %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines_to_print, diff_count))
-        insertInstancesProducts(server_id, instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count)
-
+        verbose("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
+            %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines_to_print, diff_count,is_egg))
+        insertInstancesProducts(server_id, instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count, is_egg)
+                
     product_id = getProductId('CMFPlone')
     if product_id:
         row = selectOneInTable('instances_products', 'local_version', "instance_id = %s and product_id = %s"%(inst_id, product_id))
@@ -294,14 +310,41 @@ class MyUrlOpener(urllib.FancyURLopener):
 
 #------------------------------------------------------------------------------
 
-def readProductsDir(pdir, dic):
+def readProductsDir(pdir, dic, eggsFind):
     """ Read the products dir and save the folder names in a dic """
     if not os.path.exists(pdir):
         error("Dir products '%s' doesn't exist"%pdir)
         return 
     for (dirname, path) in getSubdirs(pdir):
+        dirname = "Products." + dirname
         dic[dirname] = path
+    #now, we must add all other eggs (not begining by Products.xxx)    
+    config = cfgparser.ConfigParser()
+    configFile = instdir+"/buildout.cfg"
+    config.read(configFile)
+    has_section = config.has_section("instance") # return True if section exist (Caution is mother of safety)
+    if has_section:
+        has_option = config.has_option("instance", "eggs") # return True if option exist
+        if has_option:
+            eggs = config.get("instance", "eggs").split("\n")
+            for egg in eggs:
+                if egg and egg[0] != "$":
+                    eggsFind.append(egg)
+                    if egg[0:8] == "Products": #egg in Products.xxx form already threated
+                        continue
+                    egg = egg.strip(" ").split(" ")[0]
+                    path = os.path.join(instdir, 'parts/omelette', egg.replace(".","/"))
+                    if os.path.exists(path):
+                        dic[egg] = path  #add in dictionnaries this egg    
     trace(str(dic))
+
+#------------------------------------------------------------------------------
+
+def isAnEgg(product,eggs):
+    for egg in eggs:
+        if egg.find(product) != -1:
+            return "Yes"
+    return "No"
 
 #------------------------------------------------------------------------------
 
@@ -335,7 +378,7 @@ def svnInformation(dirpath):
         #Getting svn repository url
         rep_url = svn_out[1].strip('\n ')
         if rep_url.startswith('URL'):
-            rep_url = rep_url[3:].strip(' :')
+            rep_url = rep_url[7:]
             trace("svn URL = '%s'"%rep_url)
         else:
             error("URL not matched : '%s'"%rep_url)
@@ -359,7 +402,14 @@ def getLocalVersion(product_dir):
         (out, err) = runCommand(command)
         if out:
             txt_version = out[0].strip('\n ')
-
+    else:
+        file_name = os.path.join(product_dir, 'VERSION.txt')
+        if os.path.exists(file_name):
+            command = 'pg '+file_name
+            (out, err) = runCommand(command)
+            if out:
+                txt_version = out[0].strip('\n ')
+            
     file_name = os.path.join(product_dir, 'profiles/default/metadata.xml')
     if os.path.exists(file_name):
         lines = []
@@ -395,13 +445,14 @@ def getRevision(lines):
         #works on all2all server
         if re.compile(r'^R.vision ?: (\d+)$').match(rev_nb):
             rev_nb = re.compile(r'^R.vision ?: (\d+)$').match(rev_nb).group(1)
-#            verbose("Local revision = %s"%rev_nb)
             return rev_nb
         #works locally
         elif re.compile(r'^Révision ?: (\d+)$').match(rev_nb):
             rev_nb = re.compile(r'^Révision ?: (\d+)$').match(rev_nb).group(1)
-#            verbose("Local revision = %s"%rev_nb)
             return rev_nb
+        else:
+            if rev_nb.find('Révision') != -1:
+                return rev_nb[rev_nb.find('Révision') + len('Révision')+3:]
     error("Revision not matched")
     return None
 
@@ -578,7 +629,7 @@ def getFsFilesId(inst_id, fs):
 
 #------------------------------------------------------------------------------
 
-def insertInstancesProducts(server_id, instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_out, diff_count):
+def insertInstancesProducts(server_id, instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_out, diff_count, is_egg):
     inst_id = getInstanceId(instance, server_id)
     product_id = getProductId(product)
     if not product_id:
@@ -612,6 +663,8 @@ def insertInstancesProducts(server_id, instance, product, local_version, rep_ver
         sys.exit(1)
     if rep_url and not updateTable('instances_products', "repository_address='%s'"%(rep_url), "id = %s"%inst_prod_id):
         sys.exit(1)
+    if is_egg and not updateTable('instances_products', "is_egg='%s'"%(is_egg), "id = %s"%inst_prod_id):
+        sys.exit(1)        
 
 #    tab_file.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(product, local_version, rep_version, local_rev, rep_rev, diff_flag, diff_count, rep_url))
 
