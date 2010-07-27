@@ -90,7 +90,10 @@ CREATE TABLE instances (
     type character(20),
     zope_path character(150),
     server_id integer NOT NULL,
-    repository_address character varying(250)
+    repository_address character varying(250),
+    svn_diff character varying(5),
+    local_revision integer,
+    repository_revision integer    
 );
 
 
