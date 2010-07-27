@@ -13,6 +13,7 @@
         <th>Server</th>
         <th title="buildout svn path displayed when mouse on instance name">Instance (i)</th>
         <th>Port</th>
+        <th>Changes</th> 
         <th>Zope version</th>
         <th>Plone version</th>
         <th>Products</th>
@@ -24,11 +25,17 @@
       <tbody>
        <tal:entry tal:repeat="row python:context.select_all_instances()">
          <tr class="" tal:define="evenrow repeat/row/even;
+                                  decorations python:context.decorateInstanceView(0,0,row['local_revision'],row['repository_revision'],row['svn_diff'],row['repository_address']);
                                   zopeurl python:context.getZopeUrl(row['server'],row['port']);" 
                       tal:attributes="class python:test(evenrow, 'even', 'odd')">
+
           <td tal:content="row/server"></td>
           <td tal:content="row/instance" tal:attributes="title row/repository_address"></td>
           <td><a href="" target="_blank" tal:attributes="href python:zopeurl+'/manage_main'" tal:content="row/port"></a></td>
+          <td class="" tal:attributes="class decorations/diff_cl">
+            <a tal:condition="decorations/diff_href" href="" tal:attributes="href decorations/diff_href" tal:content="row/svn_diff"></a>
+            <span tal:condition="not:decorations/diff_href" tal:replace="row/svn_diff"></span>
+          </td>
           <td tal:content="row/zope_version"></td>
           <td tal:content="row/plone_version"></td>
           <td tal:define="cnt python:context.select_instances_products(inst_id=row['id'])">
