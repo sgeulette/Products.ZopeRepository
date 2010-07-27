@@ -97,8 +97,25 @@ def main():
         sys.exit(1)
     server_id = getServerId(hostname)
 
-    (is_svn, rep_url, local_rev) = svnInformation(instdir)
-
+    (is_svn, rep_url, local_rev) = svnInformation(instdir)    
+  
+    rep_rev = ''
+    svn_diff = ''    
+    if is_svn:
+        (rep_version, rep_rev) = getRepositoryVersion(rep_url, "temp")
+        #dir was changed in getRepositoryVersion()
+        os.chdir(instdir)
+        if local_rev != rep_rev or not local_rev or not rep_rev:
+            diff_cmd = 'svn diff -r HEAD'
+            (diff_out, diff_err) = runCommand(diff_cmd)
+            if diff_err:
+                error("error running command %s : %s" % (diff_cmd, ''.join(diff_err)))
+            elif diff_out:
+                svn_diff = 'Yes'
+                diff_lines = diff_out
+                diff_count = len(diff_out)
+            else:
+                svn_diff = 'No'    
     #Creation or update of the instance information
     inst_id = getInstanceId(instance, server_id)
     if inst_id:
@@ -111,8 +128,8 @@ def main():
         deleteTable('instances_products', "instance_id = %s"%inst_id)
         deleteTable('plonesites', "instance_id = %s"%inst_id)
         deleteTable('mountpoints', "instance_id = %s"%inst_id)
-    elif not insertInTable('instances', "instance, creationdate, type, server_id, repository_address", "'%s', '%s', '%s', %s, '%s'"
-                %(instance, now, inst_type, server_id, rep_url)):
+    elif not insertInTable('instances', "instance, creationdate, type, server_id, repository_address, svn_diff, local_revision, repository_revision", "'%s', '%s', '%s', %s, '%s', '%s', '%s', '%s'"
+                %(instance, now, inst_type, server_id, rep_url, svn_diff,local_rev,rep_rev)):
         sys.exit(1)
 
     inst_id = getInstanceId(instance, server_id)
@@ -134,7 +151,6 @@ def main():
 
     fkeys = pfolders.keys()
    
- 
     fkeys.sort()
     for product in fkeys:
 #        if product != 'BelgianEidAuthPlugin':
@@ -469,18 +485,16 @@ def getRepositoryVersion(url, product):
         except Exception, errmsg:
             error("cannot create temp dir '%s'"%tempdir)
             return(None, None)
-    os.chdir(tempdir)
-    command = 'svn co %s %s'%(url, product)
+    os.chdir(tempdir)    
+    command = 'svn co %s %s'%(url, product) 
     (cmd_out, cmd_err) = runCommand(command)
     if cmd_err:
         error("error running command %s : %s" % (command, ''.join(cmd_err)))
         return(rep_version, rep_rev)
-
     product_dir = os.path.join(tempdir, product)
     os.chdir(product_dir)
     rep_version = getLocalVersion(product_dir)
 #    verbose("rep version=%s"%rep_version)
-
     svn_cmd = 'svn info'
     (svn_out, svn_err) = runCommand(svn_cmd)
     if svn_err:
@@ -490,7 +504,6 @@ def getRepositoryVersion(url, product):
         rep_rev = getRevision(svn_out)
     else:
         error('No output for command %s'%svn_cmd)
-
     shutil.rmtree(os.path.join(tempdir, product))
     return(rep_version, rep_rev)
 
