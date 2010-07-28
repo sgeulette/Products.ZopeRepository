@@ -106,7 +106,10 @@ def main():
         #dir was changed in getRepositoryVersion()
         os.chdir(instdir)
         if local_rev != rep_rev or not local_rev or not rep_rev:
-            diff_cmd = 'svn diff -r HEAD'
+            local_rep = rep_url + '@' + local_rev.strip(' ')
+            server_rep = rep_url + '@HEAD'
+            diff_cmd = 'svn diff ' + local_rep + ' ' + server_rep
+            verbose(str(diff_cmd))
             (diff_out, diff_err) = runCommand(diff_cmd)
             if diff_err:
                 error("error running command %s : %s" % (diff_cmd, ''.join(diff_err)))
