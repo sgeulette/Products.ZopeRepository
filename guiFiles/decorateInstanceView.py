@@ -45,14 +45,9 @@ if svn_diff and svn_diff != 'No':
     temp = 'error_in_repository_address'
   for domain in trac.keys():
     if temp.startswith(domain):
-      if temp.startswith('svn.plone.org'):
-        temp = temp.replace(domain+'/', '')
-        temp = temp.replace('/', '%2F')
-        temp = trac[domain]+'/changeset?new='+str(repository_revision)+'%40'+temp+'&old='+str(local_revision)+'%40'+temp
-      else:
-        temp = temp.replace(domain+'/', '')
-        temp = temp.replace('/', '%2F')
-        temp = trac[domain]+'/changeset?new='+temp+'%40'+str(repository_revision)+'&old='+temp+'%40'+str(local_revision)
+      temp = temp.replace(domain+'/', '')
+      temp = temp.replace('/', '%2F')
+      temp = trac[domain]+'/changeset?new='+str(repository_revision)+'%40'+temp+'&old='+str(local_revision)+'%40'+temp
       break
   if temp.find('changeset') >= 0:
     diff_href = temp
