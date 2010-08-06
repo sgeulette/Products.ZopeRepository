@@ -42,7 +42,6 @@ def main():
 #    import pdb; pdb.set_trace()
     instdir = instdir.rstrip('/')
     verbose("Working on instance %s" % instdir)
-
     # Finding the instance type (buildout or manual)
     if os.path.exists(os.path.join(instdir,'parts')):
         buildout_inst_type = True
@@ -95,8 +94,7 @@ def main():
     if not row and not insertInTable('servers', "server, ip_address", "'%s', '%s'"
                 %(hostname, socket.gethostbyname(hostname))):
         sys.exit(1)
-    server_id = getServerId(hostname)
-
+    server_id = getServerId(hostname)    
     (is_svn, rep_url, local_rev) = svnInformation(instdir)    
   
     rep_rev = ''
@@ -154,7 +152,7 @@ def main():
 
     fkeys = pfolders.keys()
    
-    fkeys.sort()
+    fkeys.sort()    
     for product in fkeys:
 #        if product != 'BelgianEidAuthPlugin':
 #            continue        
@@ -219,15 +217,14 @@ def main():
             %(product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines_to_print, diff_count,is_egg))
         insertInstancesProducts(server_id, instance, product, local_version, rep_version, local_rev, rep_rev, diff_flag, rep_url, diff_lines, diff_count, is_egg)
                 
-    product_id = getProductId('CMFPlone')
+    product_id = getProductId('Products.CMFPlone')
     if product_id:
-        row = selectOneInTable('instances_products', 'local_version', "instance_id = %s and product_id = %s"%(inst_id, product_id))
+        row = selectOneInTable('instances_products', 'local_version', "instance_id = %s and product_id = %s"%(inst_id, product_id))        
         if row:
             updateTable('instances', "plone_version='%s'"%(row[0]), "id = %s"%inst_id)
 
     if temp_added:
-        shutil.rmtree(tempdir)
-        
+        shutil.rmtree(tempdir) 
     # Getting all fs file   
     verbose('threat fsfiles in', fspath)
     folderLst = os.listdir(fspath) 
