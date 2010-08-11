@@ -56,11 +56,14 @@ def main():
         deleteTable('apaches')
         deleteTable('virtualhosts')
         deleteTable('rewrites')
+    row = selectOneInTable('servers', 'min(creationdate)')
+    if not row[0] or (now - row[0]) > timedelta(hours=3):    
+        deleteTable('servers')    
 
     hostname = socket.gethostname()
     row = selectOneInTable('servers', '*', "server = '%s'"%hostname)
-    if not row and not insertInTable('servers', "server, ip_address", "'%s', '%s'"
-                %(hostname, socket.gethostbyname(hostname))):
+    if not row and not insertInTable('servers', "server, ip_address,creationdate", "'%s', '%s', '%s'"
+                %(hostname, socket.gethostbyname(hostname),now)):    
         sys.exit(1)
     server_id = getServerId(hostname)
 

@@ -93,7 +93,8 @@ CREATE TABLE instances (
     repository_address character varying(250),
     svn_diff character varying(5),
     local_revision integer,
-    repository_revision integer    
+    repository_revision integer,
+    awstats_path character varying(150)    
 );
 
 
@@ -280,6 +281,7 @@ ALTER TABLE public.rewrites OWNER TO zoperepos;
 
 CREATE TABLE servers (
     id integer NOT NULL,
+    creationdate timestamp without time zone NOT NULL,
     server character varying(50) NOT NULL,
     ip_address character varying(30)
 );
