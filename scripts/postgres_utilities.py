@@ -87,6 +87,24 @@ def updateTable(table, updates, condition=''):
 
 #------------------------------------------------------------------------------
 
+def selectWithSQLRequest(sql):
+    """ select multiple lines in a table with a complete sql"""
+    conn = openConnection()
+    cursor = conn.cursor()
+    req=sql
+    try:
+        cursor.execute(req)
+        data = cursor.fetchall()
+    except Exception, message:
+        error("Cannot select from database : %s"%message)
+        error("Request was : '%s'"%req)
+        conn.close()
+        return None
+    conn.close()
+    return data
+
+#------------------------------------------------------------------------------
+
 def selectAllInTable(table, selection, condition=''):
     """ select multiple lines in a table """
     conn = openConnection()
