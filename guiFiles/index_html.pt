@@ -20,6 +20,7 @@
         <th>Plone sites</th>
         <th>Mount points</th>
         <th>Last scan</th>
+        <th>Awstats</th>
        </tr>
       </thead>
       <tbody>
@@ -45,6 +46,7 @@
           <td tal:define="cnt python:context.select_mountpoints(inst_id=row['id'])">
            <a href="" target="_blank" tal:attributes="href python:'mountpoint_view?instance='+row['instance']+'&inst_id='+str(row['id'])+'&th_rep='+str(th_rep)+'&server='+str(row['server'])" tal:content="python: len(cnt)"></a></td>
           <td tal:content="python:DateTime(row['creationdate']).strftime('%d/%m/%Y %H:%M')"></td>
+          <td><a href="" target="_blank" tal:attributes="href row/awstats_path" tal:content="row/awstats_path"></a></td>
          </tr>
        </tal:entry>
       </tbody>
