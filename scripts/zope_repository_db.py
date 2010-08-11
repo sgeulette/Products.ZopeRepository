@@ -26,13 +26,14 @@ buildout_inst_type = None #True for buildout, False for manual instance
 tempdir = ''
 now = datetime(1973,02,12).now()
 pfolders = {}
-temp_added = False
+temp_added = True
 #dsn="host=localhost port=5432 dbname=zoperepos user=zoperepos password=zopeREP1"
 #dsn is now in postgres_utilities
 ext_method = 'zope_repository_infos'
 ext_filename = 'zope_infos.py'
 function = 'walkInZope'
 TRACE = False
+DOSTATWORK=False
 
 ###############################################################################
 
@@ -80,23 +81,24 @@ def main():
 #    if row[0] and (now - row[0]) > timedelta(minutes=8):
 #    if True:
         deleteTable('instances')
-        deleteTable('servers')
         deleteTable('products')
         deleteTable('instances_products')
         deleteTable('plonesites')
         deleteTable('plonesites_products')
         deleteTable('mountpoints')
         deleteTable('fsfiles')
+    row = selectOneInTable('servers', 'min(creationdate)')
+    if not row[0] or (now - row[0]) > timedelta(hours=3):        
+        deleteTable('servers')    
 
     #hostname = '127.0.0.1' # to test if it work with another hostname
     #Creation or update of the server information
     row = selectOneInTable('servers', '*', "server = '%s'"%hostname)
-    if not row and not insertInTable('servers', "server, ip_address", "'%s', '%s'"
-                %(hostname, socket.gethostbyname(hostname))):
+    if not row and not insertInTable('servers', "server, ip_address,creationdate", "'%s', '%s', '%s'"
+                %(hostname, socket.gethostbyname(hostname),now)):
         sys.exit(1)
     server_id = getServerId(hostname)    
     (is_svn, rep_url, local_rev) = svnInformation(instdir)    
-  
     rep_rev = ''
     svn_diff = ''    
     if is_svn:
@@ -155,7 +157,7 @@ def main():
     fkeys.sort()    
     for product in fkeys:
 #        if product != 'BelgianEidAuthPlugin':
-#            continue        
+#            continue  
         local_version = None
         local_rev = None
         rep_url = None
@@ -225,6 +227,7 @@ def main():
 
     if temp_added:
         shutil.rmtree(tempdir) 
+        
     # Getting all fs file   
     verbose('threat fsfiles in', fspath)
     folderLst = os.listdir(fspath) 
@@ -237,10 +240,38 @@ def main():
         if fileExt == '.fs':            
             if not getFsFilesId(inst_id,fileInFolder):
                 #inserting new row
-                if not insertInTable('fsfiles', "instance_id, fs, path, size", "%s, '%s', '%s', %s"%(inst_id, fileInFolder,completeFsFileName,fsSize)):
+                if not insertInTable('fsfiles', "instance_id, fs, path, size", "%s, '%s', '%s', %s"%(inst_id, fileInFolder, completeFsFileName, fsSize)):
                     sys.exit(1)   
-             
-
+                    
+    #awstats construct
+    if DOSTATWORK and instance.find('test')<0 and instance.find('Test')<0:
+        logfilepath = os.path.join(instdir, 'var/awstats')
+        #get all log file for this instance
+        rows = getAllLogFile(inst_id)
+        logfiles = ""
+        for row in rows:
+            logfiles = logfiles + os.path.join(instdir,row[0]) + ' '    
+        #construct conf file for awstats and laungh script  
+        filename = os.path.join(logfilepath, 'awstats.' + instance + '.conf')  
+        confFile = open(filename, 'w') 
+        confFile.write('LogFile="/usr/share/doc/awstats/examples/logresolvemerge.pl '+ logfiles+'|"\n')
+        confFile.write('LogFormat=1\n')
+        confFile.write('SiteDomain="'+instance+'"\n')
+        confFile.write('HostAliases="REGEX[.*]"\n')
+        confFile.write('DirData="'+logfilepath+'"\n')
+        confFile.write('DirIcons="/awstats/icon"\n')
+        #confFile.write('LoadPlugin="geoip GEOIP_STANDARD /usr/share/awstats/lib/GeoIP.dat"\n')
+        confFile.close();    
+        command = "%s -config=%s -configdir=%s update"%('/usr/lib/cgi-bin/awstats.pl', instance,logfilepath)
+        verbose("\t>> Running '%s'"%command)
+        (cmd_out, cmd_err) = runCommand(command)
+        if cmd_err:
+            error("error running command %s : %s" % (command, ''.join(cmd_err)))
+        if cmd_out:
+            verbose("\t>>OUTPUT: %s" % (''.join(cmd_out))) 
+        awstats_path = 'http://' + socket.gethostbyname(hostname) + '/cgi-bin/awstats.pl?config=' + instance + '&configdir=' + logfilepath
+        if not updateTable('instances', "awstats_path='%s'"%(awstats_path), "id = %s"%inst_id):
+            sys.exit(1)
     #copying extensions script
     #NO MORE NEEDED : the script is present in ZopeRepository products
 #     ext_file = os.path.join(instdir, 'Extensions', ext_filename)
@@ -696,6 +727,17 @@ def insertInstancesProducts(server_id, instance, product, local_version, rep_ver
 
 #------------------------------------------------------------------------------
 
+
+def getAllLogFile(inst_id): 
+    sql = "select distinct logfile from virtualhosts vir, rewrites rew, apaches ap, servers srv, instances inst \
+    where vir.id = rew.virtualhost_id and \
+    vir.apache_id = ap.id and \
+    ap.server_id = srv.id and \
+    srv.id = inst.server_id and \
+    inst.port = rew.port and inst.id = " + str(inst_id)
+    return selectWithSQLRequest(sql)
+
+#------------------------------------------------------------------------------
 try:
     from optparse import OptionParser
     parser = OptionParser()
