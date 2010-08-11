@@ -26,7 +26,7 @@ buildout_inst_type = None #True for buildout, False for manual instance
 tempdir = ''
 now = datetime(1973,02,12).now()
 pfolders = {}
-temp_added = True
+temp_added = False
 #dsn="host=localhost port=5432 dbname=zoperepos user=zoperepos password=zopeREP1"
 #dsn is now in postgres_utilities
 ext_method = 'zope_repository_infos'
