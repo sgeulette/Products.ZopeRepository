@@ -269,7 +269,7 @@ def main():
             error("error running command %s : %s" % (command, ''.join(cmd_err)))
         if cmd_out:
             verbose("\t>>OUTPUT: %s" % (''.join(cmd_out))) 
-        awstats_path = 'http://' + socket.gethostbyname(hostname) + '/cgi-bin/awstats.pl?config=' + instance + '&configdir=' + logfilepath
+        awstats_path = 'http://' + hostname + '-stats.communesplone.be/cgi-bin/awstats.pl?config=' + instance + '&configdir=' + logfilepath
         if not updateTable('instances', "awstats_path='%s'"%(awstats_path), "id = %s"%inst_id):
             sys.exit(1)
     #copying extensions script
