@@ -250,7 +250,9 @@ def main():
         rows = getAllLogFile(inst_id)
         logfiles = ""
         for row in rows:
-            logfiles = logfiles + os.path.join(instdir,row[0]) + ' '    
+            myRedirectLog = os.path.join('/srv/apache2-logs',row[0].split('/')[-1])     
+            if os.path.isfile(myRedirectLog) and logfiles.find(myRedirectLog)<0:
+                logfiles = logfiles + myRedirectLog + ' '    
         #construct conf file for awstats and laungh script  
         filename = os.path.join(logfilepath, 'awstats.' + instance + '.conf')  
         confFile = open(filename, 'w') 
@@ -269,7 +271,7 @@ def main():
             error("error running command %s : %s" % (command, ''.join(cmd_err)))
         if cmd_out:
             verbose("\t>>OUTPUT: %s" % (''.join(cmd_out))) 
-        awstats_path = 'http://' + hostname + '-stats.communesplone.be/cgi-bin/awstats.pl?config=' + instance + '&configdir=' + logfilepath
+        awstats_path = 'http://' + hostname + '-stats.communesplone.be/stats/awstats.pl?config=' + instance + '&configdir=' + logfilepath
         if not updateTable('instances', "awstats_path='%s'"%(awstats_path), "id = %s"%inst_id):
             sys.exit(1)
     #copying extensions script
