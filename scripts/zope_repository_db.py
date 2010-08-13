@@ -77,7 +77,7 @@ def main():
     #deletion of table instances if the older record is >23h, as the script is run on all instances each night
     #needed to delete obsolete instances
     row = selectOneInTable('instances', 'min(creationdate)')
-    if row[0] and (now - row[0]) > timedelta(hours=3):
+    if row[0] and (now - row[0]) > timedelta(hours=5):
 #    if row[0] and (now - row[0]) > timedelta(minutes=8):
 #    if True:
         deleteTable('instances')
@@ -88,7 +88,7 @@ def main():
         deleteTable('mountpoints')
         deleteTable('fsfiles')
     row = selectOneInTable('servers', 'min(creationdate)')
-    if not row[0] or (now - row[0]) > timedelta(hours=3):        
+    if not row[0] or (now - row[0]) > timedelta(hours=5):        
         deleteTable('servers')    
 
     #hostname = '127.0.0.1' # to test if it work with another hostname
