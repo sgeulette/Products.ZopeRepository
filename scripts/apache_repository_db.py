@@ -57,7 +57,7 @@ def main():
         deleteTable('virtualhosts')
         deleteTable('rewrites')
     row = selectOneInTable('servers', 'min(creationdate)')
-    if not row[0] or (now - row[0]) > timedelta(hours=3):    
+    if not row[0] or (now - row[0]) > timedelta(hours=5):    
         deleteTable('servers')    
 
     hostname = socket.gethostname()
