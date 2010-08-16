@@ -244,7 +244,7 @@ def main():
                     sys.exit(1)   
                     
     #awstats construct
-    if DOSTATWORK and instance.find('test')<0 and instance.find('Test')<0:
+    if DOSTATWORK and instance.find('test')<0 and instance.find('Test')<0 and instance.find('transmo')<0 and instance.find('transmo')<0:
         logfilepath = os.path.join(instdir, 'var/awstats')
         #get all log file for this instance
         rows = getAllLogFile(inst_id)
