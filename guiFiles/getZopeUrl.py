@@ -13,4 +13,6 @@ if servername.startswith('villesetcommunes'):
   zopeurl = 'http://%s.all2all.org:%s'%(servername, port)
 elif servername.startswith('plonegov'):
   zopeurl = 'http://plonegov-%s.proxy.pilotsystems.net'%(port)
+else:
+  zopeurl = 'http://%s:%s'%(servername, port)
 return zopeurl
