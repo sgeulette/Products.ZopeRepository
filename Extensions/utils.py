@@ -100,9 +100,9 @@ def add_Gui_Files(self):
         folderLst = os.listdir(FILES_FOLDER)         
         for fileInFolder in folderLst:        
             #open file and read info
-            if os.path.isdir (fileInFolder):
-                continue
             fileName = FILES_FOLDER + '/' + fileInFolder
+            if os.path.isdir (fileName):
+                continue
             f = open(fileName,'r')
             t = f.readlines()
             f.close()
