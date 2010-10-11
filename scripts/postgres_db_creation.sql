@@ -391,7 +391,7 @@ ALTER TABLE public.lastProduct_Version_id_seq OWNER TO zoperepos;
 
 CREATE TABLE lastProduct_Version (
     id integer DEFAULT nextval('instances_id_seq'::regclass) NOT NULL,
-    product character varying(40) NOT NULL,
+    product character varying(50) NOT NULL,
     creationdate timestamp without time zone NOT NULL,
     repository_revision character varying(50)
 );
