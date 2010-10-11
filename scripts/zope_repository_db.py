@@ -89,7 +89,10 @@ def main():
         deleteTable('fsfiles')
     row = selectOneInTable('servers', 'min(creationdate)')
     if not row[0] or (now - row[0]) > timedelta(hours=5):        
-        deleteTable('servers')    
+        deleteTable('servers') 
+    row = selectOneInTable('lastProduct_version', 'min(creationdate)')
+    if not row[0] or (now - row[0]) > timedelta(hours=72):        
+        deleteTable('lastProduct_version')    
 
     #hostname = '127.0.0.1' # to test if it work with another hostname
     #Creation or update of the server information
@@ -155,6 +158,10 @@ def main():
     fkeys = pfolders.keys()
    
     fkeys.sort()    
+    
+    mostVersionDic={}
+    readLastProductVersion(mostVersionDic)
+    
     for product in fkeys:
 #        if product != 'BelgianEidAuthPlugin':
 #            continue  
@@ -198,15 +205,23 @@ def main():
                     diff_flag = 'No'
         else:
             #check if it's an egg and get informations           
-            #egg_cmd = os.path.join(instdir, 'bin/') + "easy_install --dry-run " + product 
-            egg_cmd = os.path.join(instdir, 'bin/') + "easy_install -f http://download.zope.org/ppix/,http://download.zope.org/distribution/,http://effbot.org/downloads,http://dist.plone.org --dry-run " + product 
-            verbose(egg_cmd)
-            (egg_out, egg_err) = runCommand(egg_cmd)
-            if egg_out:
-                for eggout in egg_out:
-                    if (eggout.find("Best match: " + product) != -1) and (eggout != 'Best match: None'):
-                        rep_version = eggout.strip(" ").split(" ")[3]
-                        break
+            #egg_cmd = os.path.join(instdir, 'bin/') + "easy_install --dry-run " + product  
+            if not mostVersionDic.has_key(product):   
+                egg_cmd = os.path.join(instdir, 'bin/') + "easy_install -f http://download.zope.org/ppix/,http://download.zope.org/distribution/,http://effbot.org/downloads,http://dist.plone.org --dry-run " + product 
+                try:
+                    (egg_out, egg_err) = runCommand(egg_cmd)
+                    if egg_out:
+                        for eggout in egg_out:
+                            if (eggout.find("Best match: " + product) != -1) and (eggout != 'Best match: None'):
+                                rep_version = eggout.strip(" ").split(" ")[3]
+                                break
+                    mostVersionDic[product] = rep_version
+                    if not insertInTable('lastProduct_version', "product, creationdate, repository_revision", "'%s', '%s', '%s'"%(product, now, rep_version)):
+                        sys.exit(1)                      
+                except Exception, msg:
+                    error("Cannot run easy_install command for %s (%s)")%(product, msg) 
+            else:
+                rep_version = mostVersionDic[product]
                 
         #check if it's an egg 
         is_egg = isAnEgg(product,eggsFind)
@@ -394,6 +409,15 @@ def isAnEgg(product,eggs):
         if egg.find(product) != -1:
             return "Yes"
     return "No"
+
+#------------------------------------------------------------------------------
+
+def readLastProductVersion(mostVersionDic):
+    rows = selectWithSQLRequest("select product,repository_revision from lastProduct_version")    
+    mostVersionDic={}
+    for row in rows:
+        mostVersionDic[row[0]] = row[1]
+    return
 
 #------------------------------------------------------------------------------
 
