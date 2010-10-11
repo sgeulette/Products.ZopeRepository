@@ -373,6 +373,32 @@ CREATE TABLE fsfiles (
 ALTER TABLE public.fsfiles OWNER TO zoperepos;
 
 --
+-- Name: lastProduct_Version_id_seq; Type: SEQUENCE; Schema: public; Owner: zoperepos
+--
+
+CREATE SEQUENCE lastProduct_Version_id_seq
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.lastProduct_Version_id_seq OWNER TO zoperepos;
+
+--
+-- Name: instances; Type: TABLE; Schema: public; Owner: zoperepos; Tablespace: 
+--
+
+CREATE TABLE lastProduct_Version (
+    id integer DEFAULT nextval('instances_id_seq'::regclass) NOT NULL,
+    product character varying(40) NOT NULL,
+    creationdate timestamp without time zone NOT NULL,
+    repository_revision character varying(50)
+);
+
+
+ALTER TABLE public.lastProduct_Version OWNER TO zoperepos;
+--
 -- Name: id; Type: DEFAULT; Schema: public; Owner: zoperepos
 --
 
