@@ -159,9 +159,8 @@ def main():
    
     fkeys.sort()    
     
-    mostVersionDic={}
-    readLastProductVersion(mostVersionDic)
-    
+    mostVersionDic = readLastProductVersion()
+ 
     for product in fkeys:
 #        if product != 'BelgianEidAuthPlugin':
 #            continue  
@@ -206,7 +205,6 @@ def main():
         else:
             #check if it's an egg and get informations           
             #egg_cmd = os.path.join(instdir, 'bin/') + "easy_install --dry-run " + product  
-            verbose("dedede : ", str(mostVersionDic))
             if not mostVersionDic.has_key(product):   
                 egg_cmd = os.path.join(instdir, 'bin/') + "easy_install -f http://download.zope.org/ppix/,http://download.zope.org/distribution/,http://effbot.org/downloads,http://dist.plone.org --dry-run " + product 
                 try:
@@ -221,7 +219,7 @@ def main():
                     if not row and not insertInTable('lastProduct_version', "product, creationdate, repository_revision", "'%s', '%s', '%s'"%(product, now, rep_version)):
                         sys.exit(1)                      
                 except Exception, msg:
-                    error("Cannot run easy_install command for %s (%s)")%(product, msg) 
+                    error("Cannot run easy_install command for %s (%s)"%(product, msg)) 
             else:
                 rep_version = mostVersionDic[product]
                 
@@ -414,12 +412,12 @@ def isAnEgg(product,eggs):
 
 #------------------------------------------------------------------------------
 
-def readLastProductVersion(mostVersionDic):
-    rows = selectWithSQLRequest("select product,repository_revision from lastProduct_version")    
+def readLastProductVersion():     
     mostVersionDic={}
+    rows = selectWithSQLRequest("select product,repository_revision from lastProduct_version")   
     for row in rows:
         mostVersionDic[row[0]] = row[1]
-    return
+    return mostVersionDic
 
 #------------------------------------------------------------------------------
 
@@ -442,29 +440,32 @@ def svnInformation(dirpath):
     local_rev = None
     rep_url = None
     svn_cmd = 'svn info'
-    (svn_out, svn_err) = runCommand(svn_cmd)
-    if svn_err:
-        if svn_err[0].startswith("svn: '.' "):
-            is_svn = False
+    try:
+        (svn_out, svn_err) = runCommand(svn_cmd)
+        if svn_err:
+            if svn_err[0].startswith("svn: '.' "):
+                is_svn = False
+            else:
+                error("error running command %s : %s" % (svn_cmd, ''.join(svn_err)))
+        elif svn_out:
+            #trace('output=%s'%"".join(svn_out))
+            #Getting svn repository url
+            rep_url = svn_out[1].strip('\n ')
+            if rep_url.startswith('URL'):
+                rep_url = rep_url[3:].strip(' :') 
+                #rep_url = rep_url[7:]
+                trace("svn URL = '%s'"%rep_url)
+            else:
+                error("URL not matched : '%s'"%rep_url)
+            if not (rep_url.startswith('http://') or rep_url.startswith('https://')):
+                error("URL not beginning by http(s):// : '%s'"%rep_url)
+            #Getting local repository version
+            local_rev = getRevision(svn_out)
+            trace("Local revision = %s"%local_rev)
         else:
-            error("error running command %s : %s" % (svn_cmd, ''.join(svn_err)))
-    elif svn_out:
-        #trace('output=%s'%"".join(svn_out))
-        #Getting svn repository url
-        rep_url = svn_out[1].strip('\n ')
-        if rep_url.startswith('URL'):
-            rep_url = rep_url[3:].strip(' :') 
-            #rep_url = rep_url[7:]
-            trace("svn URL = '%s'"%rep_url)
-        else:
-            error("URL not matched : '%s'"%rep_url)
-        if not (rep_url.startswith('http://') or rep_url.startswith('https://')):
-            error("URL not beginning by http(s):// : '%s'"%rep_url)
-        #Getting local repository version
-        local_rev = getRevision(svn_out)
-        trace("Local revision = %s"%local_rev)
-    else:
-        error('No output for command%s'%svn_cmd)
+            error('No output for command%s'%svn_cmd)
+    except:
+        error('Anormal end of svnInformation (%s)'%dirpath)
     return(is_svn, rep_url, local_rev)
 
 #------------------------------------------------------------------------------
@@ -547,10 +548,14 @@ def getRepositoryVersion(url, product):
             return(None, None)
     os.chdir(tempdir)    
     command = 'svn co %s %s'%(url, product) 
-    (cmd_out, cmd_err) = runCommand(command)
-    if cmd_err:
-        error("error running command %s : %s" % (command, ''.join(cmd_err)))
-        return(rep_version, rep_rev)
+    try:
+        (cmd_out, cmd_err) = runCommand(command)
+        if cmd_err:
+            error("error running command %s : %s" % (command, ''.join(cmd_err)))
+            return(rep_version, rep_rev)
+    except:
+        error("error running command %s in getRepositoryVersion" %command)
+        return(rep_version, rep_rev)        
     product_dir = os.path.join(tempdir, product)
     os.chdir(product_dir)
     rep_version = getLocalVersion(product_dir)
