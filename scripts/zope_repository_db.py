@@ -206,6 +206,7 @@ def main():
         else:
             #check if it's an egg and get informations           
             #egg_cmd = os.path.join(instdir, 'bin/') + "easy_install --dry-run " + product  
+            verbose("dedede : ", str(mostVersionDic))
             if not mostVersionDic.has_key(product):   
                 egg_cmd = os.path.join(instdir, 'bin/') + "easy_install -f http://download.zope.org/ppix/,http://download.zope.org/distribution/,http://effbot.org/downloads,http://dist.plone.org --dry-run " + product 
                 try:
@@ -216,7 +217,8 @@ def main():
                                 rep_version = eggout.strip(" ").split(" ")[3]
                                 break
                     mostVersionDic[product] = rep_version
-                    if not insertInTable('lastProduct_version', "product, creationdate, repository_revision", "'%s', '%s', '%s'"%(product, now, rep_version)):
+                    row = selectOneInTable('lastProduct_version', '*', "product = '%s'"%product)
+                    if not row and not insertInTable('lastProduct_version', "product, creationdate, repository_revision", "'%s', '%s', '%s'"%(product, now, rep_version)):
                         sys.exit(1)                      
                 except Exception, msg:
                     error("Cannot run easy_install command for %s (%s)")%(product, msg) 
