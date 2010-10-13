@@ -33,7 +33,7 @@ ext_method = 'zope_repository_infos'
 ext_filename = 'zope_infos.py'
 function = 'walkInZope'
 TRACE = False
-DOSTATWORK=False
+DOSTATWORK=True
 
 ###############################################################################
 
@@ -122,6 +122,8 @@ def main():
                 diff_count = len(diff_out)
             else:
                 svn_diff = 'No'    
+        elif local_rev == rep_rev:
+            svn_diff = 'No' 
     #Creation or update of the instance information
     inst_id = getInstanceId(instance, server_id)
     if inst_id:
@@ -270,25 +272,33 @@ def main():
                 logfiles = logfiles + myRedirectLog + ' '    
         #construct conf file for awstats and laungh script  
         filename = os.path.join(logfilepath, 'awstats.' + instance + '.conf')  
-        confFile = open(filename, 'w') 
-        confFile.write('LogFile="/usr/share/doc/awstats/examples/logresolvemerge.pl '+ logfiles+'|"\n')
-        confFile.write('LogFormat=1\n')
-        confFile.write('SiteDomain="'+instance+'"\n')
-        confFile.write('HostAliases="REGEX[.*]"\n')
-        confFile.write('DirData="'+logfilepath+'"\n')
-        confFile.write('DirIcons="/awstats/icon"\n')
-        #confFile.write('LoadPlugin="geoip GEOIP_STANDARD /usr/share/awstats/lib/GeoIP.dat"\n')
-        confFile.close();    
-        command = "%s -config=%s -configdir=%s update"%('/usr/lib/cgi-bin/awstats.pl', instance,logfilepath)
-        verbose("\t>> Running '%s'"%command)
-        (cmd_out, cmd_err) = runCommand(command)
-        if cmd_err:
-            error("error running command %s : %s" % (command, ''.join(cmd_err)))
-        if cmd_out:
-            verbose("\t>>OUTPUT: %s" % (''.join(cmd_out))) 
-        awstats_path = 'http://' + hostname + '-stats.communesplone.be/stats/awstats.pl?config=' + instance + '&configdir=' + logfilepath
-        if not updateTable('instances', "awstats_path='%s'"%(awstats_path), "id = %s"%inst_id):
-            sys.exit(1)
+        try:
+            if not os.path.isdir(logfilepath):
+                os.makedirs(logfilepath, mode=0777) 
+            if not os.path.isfile(filename):
+                file(filename, 'wt')                
+            confFile = open(filename, 'w') 
+            confFile.write('LogFile="/usr/share/doc/awstats/examples/logresolvemerge.pl '+ logfiles+'|"\n')
+            confFile.write('LogFormat=1\n')
+            confFile.write('SiteDomain="'+instance+'"\n')
+            confFile.write('HostAliases="REGEX[.*]"\n')
+            confFile.write('DirData="'+logfilepath+'"\n')
+            confFile.write('DirIcons="/awstats/icon"\n')
+            #confFile.write('LoadPlugin="geoip GEOIP_STANDARD /usr/share/awstats/lib/GeoIP.dat"\n')
+            confFile.close();
+            command = "%s -config=%s -configdir=%s update"%('/usr/lib/cgi-bin/awstats.pl', instance,logfilepath)
+            verbose("\t>> Running '%s'"%command)
+            (cmd_out, cmd_err) = runCommand(command)
+            if cmd_err:
+                error("error running command %s : %s" % (command, ''.join(cmd_err)))
+            if cmd_out:
+                verbose("\t>>OUTPUT: %s" % (''.join(cmd_out))) 
+            awstats_path = 'http://' + hostname + '-stats.communesplone.be/stats/awstats.pl?config=' + instance + '&configdir=' + logfilepath
+            if not updateTable('instances', "awstats_path='%s'"%(awstats_path), "id = %s"%inst_id):
+                sys.exit(1)
+        except Exception, msg:
+            error("Erreur lors de l'ouverture du fichier awstats ! (%s)"%msg)
+
     #copying extensions script
     #NO MORE NEEDED : the script is present in ZopeRepository products
 #     ext_file = os.path.join(instdir, 'Extensions', ext_filename)
