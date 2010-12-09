@@ -111,7 +111,7 @@ def analyze_conf(conf_file, apache_name, server_id):
         return
     vhost = servername = minisite = log_vh = redirect_code = redirect_from = redirect_to = servernameip = protocol = vh_ip = ''
     serveralias = []
-    rewrites = []
+    rewrites = []    
     maps_mini_dico = {}
     lnb = 0    
     for line in cfile.readlines():
@@ -127,6 +127,7 @@ def analyze_conf(conf_file, apache_name, server_id):
             if vhost.find(':') > 0:
                 (vh_ip, port) = vhost.split(':')
                 protocol = (port == '80' and 'http' or (port == '443' and 'https' or '')) 
+            del(serveralias[:]) #we must clear server alias because we have a new VirtualHost definition
             continue
 
         #ServerName www.communesplone.be
@@ -146,7 +147,7 @@ def analyze_conf(conf_file, apache_name, server_id):
 
         #RewriteMap map-mini srv/minisites.d/filename.conf
         res = pat_rw_map_mini.match(line) 
-        if res:
+        if res:            
             minisite = res.group(1)
             continue
 
@@ -178,11 +179,12 @@ def analyze_conf(conf_file, apache_name, server_id):
             res = pat_rw_other.match(line)
             if res:
                 continue   
+            maps_mini_dico.clear() #we must clear dico because we can have some virtualhost definition in one file
             maps_mini_dico[servername] = '' #initialize main virtualhost definition
             for sa in serveralias:
                 if sa.startswith('*.') or servername.find(sa)>=0:
                     continue
-                maps_mini_dico[sa] = ''
+                maps_mini_dico[sa] = ''            
             if minisite:
                 try:
                     minifile = open(minisite, 'r')
