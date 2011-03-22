@@ -59,7 +59,7 @@ def main():
         deleteTable('virtualhosts')
         deleteTable('rewrites')
     row = selectOneInTable('servers', 'min(creationdate)')
-    if not row[0] or (now - row[0]) > timedelta(hours=5):   
+    if not row[0] or (now - row[0]) > timedelta(hours=20):   
 #    if True: 
         deleteTable('servers')    
 
