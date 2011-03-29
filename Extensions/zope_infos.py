@@ -121,6 +121,10 @@ def getProductId(product):
     row = selectOneInTable('products', 'id', "product = '%s'"%product)
     if row:
         return row[0]
+    else:        
+       row = selectOneInTable('products', 'id', "product = 'Products.%s'"%product)
+       if row:
+           return row[0]    
     return 0
 
 #------------------------------------------------------------------------------
