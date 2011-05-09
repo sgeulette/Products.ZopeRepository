@@ -47,7 +47,7 @@ if svn_diff and svn_diff != 'No':
     if temp.startswith(domain):
       temp = temp.replace(domain+'/', '')
       temp = temp.replace('/', '%2F')
-      temp = trac[domain]+'/changeset?new='+str(repository_revision)+'%40'+temp+'&old='+str(local_revision)+'%40'+temp
+      temp = trac[domain]+'/changeset?new='+'%40'+temp+'&old='+str(local_revision)+'%40'+temp
       break
   if temp.find('changeset') >= 0:
     diff_href = temp
