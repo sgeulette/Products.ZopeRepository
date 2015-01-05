@@ -799,7 +799,11 @@ try:
     (options, args) = parser.parse_args()
     if options.infos.startswith('#'):
         sys.exit(0)
-    instdir, days, user, pwd = options.infos.split(';')
+    params = options.infos.split(';')
+    if len(params) == 4:
+        instdir, days, user, pwd = params
+    else:
+        instdir, zeo_port, inst_port, inst_nb, user, pwd = params
 except ValueError:
     error("Problem in parameters")
     parser.print_help()
