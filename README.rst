@@ -1,3 +1,6 @@
+Products.ZopeRepository
+=======================
+
 This product is a zope repository tool : documenting a zope installation.
 
 The "scripts" directory contains system scripts calling an external method from directory "Extensions".
