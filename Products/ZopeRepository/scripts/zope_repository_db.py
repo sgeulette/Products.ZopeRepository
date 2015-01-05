@@ -54,9 +54,17 @@ def main():
         error("! Invalid instance path '%s' or instance type not detected"%instdir)
         sys.exit(1)
 
+    if os.path.exists(os.path.join(instdir, 'parts/instance')):
+        instance_name = 'instance'
+    elif os.path.exists(os.path.join(instdir, 'parts/instance1')):
+        instance_name = 'instance1'
+    else:
+        error("! instance name in '%s' not found" % instdir)
+        sys.exit(1)
+
     if buildout_inst_type:
-        zodbfilename = os.path.join(instdir, 'parts/instance/etc/zope.conf')
-        zopectlfilename = os.path.join(instdir, 'parts/instance/bin/zopectl')
+        zodbfilename = os.path.join(instdir, 'parts/%s/etc/zope.conf' % instance_name)
+        zopectlfilename = os.path.join(instdir, 'parts/%s/bin/zopectl' % instance_name)
         fspath = os.path.join(instdir, 'var/filestorage/')
         inst_type = 'buildout'
         productsdir = os.path.join(instdir, 'parts/omelette/Products')
